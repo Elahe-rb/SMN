@@ -15,7 +15,7 @@ IS_HIERARCHICAL = False
 clusterNumber = 6
 
 save_model_path = '../data/MSDialog/saved_mode.pth'
-train_path = '../data/MSDialog/train.tsv'
+train_path = '../../MSDialog/valid_scores.txt'
 valid_path = '../data/MSDialog/valid.tsv'
 test_path = '../data/MSDialog/test.tsv'
 vocab_path = '../data/MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
