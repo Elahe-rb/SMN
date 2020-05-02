@@ -102,13 +102,13 @@ def clean_data(rows):
 def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:]
+    rows = list(reader)[0:100]
     rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:]
+    rows = list(reader)[0:100]
     return rows
 
 #iter starts from 0
@@ -154,7 +154,7 @@ def build_vocab(corpus_name, train_data, valid_data, vocab_path, trim):
 
     return voc
 
-def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):
+def load_glove_embeddings(vocab, filename='../data/glove.6B.200d.txt'):
     lines = open(filename).readlines()
     embeddings = {}
     not_oov = 0
@@ -298,7 +298,7 @@ def load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, va
     train = readFile(train_path)
     train_uids = readUidsFile(train_uids_path)
     train_data = list(zip(train, train_uids))
-    random.shuffle(train_data)
+    #random.shuffle(train_data)
     train, train_uids = zip(*train_data)
     valid = readFile(valid_path)
     valid_uids = readUidsFile(valid_uids_path)
