@@ -102,13 +102,13 @@ def clean_data(rows):
 def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:20]
+    rows = list(reader)[0:]
     rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:20]
+    rows = list(reader)[0:]
     return rows
 
 #iter starts from 0
@@ -298,7 +298,7 @@ def load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, va
     train = readFile(train_path)
     train_uids = readUidsFile(train_uids_path)
     train_data = list(zip(train, train_uids))
-    #random.shuffle(train_data)
+    random.shuffle(train_data)
     train, train_uids = zip(*train_data)
     valid = readFile(valid_path)
     valid_uids = readUidsFile(valid_uids_path)
