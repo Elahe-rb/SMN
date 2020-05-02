@@ -33,7 +33,7 @@ print('hello SMN!!')
 train_rows, valid_rows, test_rows, vocab, dic, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, valid_uids_path, test_uids_path)
 vocab_size = len(vocab) + 1 #for padding
 
-with open('../../MSDialog/clustered_completegraph.csv') as f:
+with open('../../data/MSDialog/clustered_completegraph.csv') as f:
     next(f)  #ignore the header line
     reader = csv.reader(f)
     utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
