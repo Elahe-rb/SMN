@@ -102,13 +102,14 @@ def clean_data(rows):
 def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[1400:]
+    rows = list(reader)[0:]
+    print(len(rows))
     rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[1400:]
+    rows = list(reader)[0:]
     return rows
 
 #iter starts from 0
