@@ -14,16 +14,16 @@ vocab_path = 'data/vocabulary.txt'  #in vocab file ro az vocab code dual encoder
 IS_HIERARCHICAL = False
 clusterNumber = 6
 
-save_model_path = '../../MSDialog/saved_mode.pth'
-train_path = '../../MSDialog/train.tsv'
-valid_path = '../../MSDialog/valid.tsv'
-test_path = '../../MSDialog/test.tsv'
-vocab_path = '../../MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
-test_results_path = '../../MSDialog/test_scores.txt'
-valid_results_path = '../../MSDialog/valid_scores.txt'
-train_uids_path = '../../MSDialog/train_uids.tsv'
-valid_uids_path = '../../MSDialog/valid_uids.tsv'
-test_uids_path = '../../MSDialog/test_uids.tsv'
+save_model_path = '../../data/MSDialog/saved_mode.pth'
+train_path = '../../data/MSDialog/train.tsv'
+valid_path = '../../data/MSDialog/valid.tsv'
+test_path = '../../data/MSDialog/test.tsv'
+vocab_path = '../../data/MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
+test_results_path = '../../data/MSDialog/test_scores.txt'
+valid_results_path = '../../data/MSDialog/valid_scores.txt'
+train_uids_path = '../../data/MSDialog/train_uids.tsv'
+valid_uids_path = '../../data/MSDialog/valid_uids.tsv'
+test_uids_path = '../../data/MSDialog/test_uids.tsv'
 
 
 '''

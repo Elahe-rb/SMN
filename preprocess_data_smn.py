@@ -154,7 +154,7 @@ def build_vocab(corpus_name, train_data, valid_data, vocab_path, trim):
 
     return voc
 
-def load_glove_embeddings(vocab, filename='../data/glove.6B.200d.txt'):
+def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):
     lines = open(filename).readlines()
     embeddings = {}
     not_oov = 0
