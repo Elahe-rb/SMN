@@ -124,7 +124,7 @@ class SMN(nn.Module):
             embedding_weights[k] = torch.FloatTensor(v)
         embedding_weights[0] = torch.FloatTensor([0] * self.emb_h_size)
 
-        self.embedding.weight = nn.Parameter(embedding_weights, requires_grad=False)
+        self.embedding.weight = nn.Parameter(embedding_weights, requires_grad=True)
 
     def forward(self, utterance, response):
         '''
