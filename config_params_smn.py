@@ -1,6 +1,6 @@
 #﻿stochastic gradient descent with Adam[11] algorithm
 
-num_epochs = 2
+num_epochs = 3
 learning_rate = 0.001
 adam_beta1 = 0.9    #these are the defult betas value for adam
 adam_beta2 = 0.999
