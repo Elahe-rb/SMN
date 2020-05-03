@@ -102,14 +102,14 @@ def clean_data(rows):
 def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:2000]
+    rows = list(reader)[0:]
     print(len(rows))
     rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:2000]
+    rows = list(reader)[0:]
     return rows
 
 #iter starts from 0
@@ -235,7 +235,8 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
     #max_length_context = max(len(row[0]) for row in batched_rows )
     #max_length_response = max(len(row[1]) for row in batched_rows )
 
-    for (row, rowuid) in zip(batched_rows, batched_uids_rows):
+    #for (row, rowuid) in zip(batched_rows, batched_uids_rows):
+    for row in batched_rows:
 
         label = row[0]
         context = ''
@@ -244,8 +245,8 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
         response = row[-1] + " eot "
 
         if is_topNet:
-            response_user_id = rowuid[0].split(",")[-1].split("-")[1]
-            cluster = cluster_ids.get(response_user_id)
+            #response_user_id = rowuid[0].split(",")[-1].split("-")[1]
+            cluster = 0#cluster_ids.get(response_user_id)
 
         context = numberize(context, vocab, max_utt_num, max_utt_length, dic, True)  #dim: context: seq*num_of_features
         response = numberize(response, vocab, max_utt_num, max_utt_length, dic, False) #dim: response: seq*num_of_features
