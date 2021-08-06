@@ -300,7 +300,7 @@ def load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, va
     train = readFile(train_path)
     train_uids = readUidsFile(train_uids_path)
     train_data = list(zip(train, train_uids))
-    #random.shuffle(train_data)
+    random.shuffle(train_data)
     train, train_uids = zip(*train_data)
     valid = readFile(valid_path)
     valid_uids = readUidsFile(valid_uids_path)
