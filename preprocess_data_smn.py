@@ -7,6 +7,7 @@ import math
 from torch.autograd import Variable
 from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 
 ######################################################################
 # Load & Preprocess Data
@@ -28,7 +29,7 @@ class Voc:
 
     def addSentence(self, sentence, is_context, is_response):
         words_in_sentece = []
-        for word in word_tokenize(sentence):    #or nltk tokenize
+        for word in sentence.split():#word_tokenize(sentence):    #or nltk tokenize
             self.addWord(word)
             if word not in words_in_sentece:
                 words_in_sentece.append(word)
@@ -82,8 +83,11 @@ class Voc:
 
 
 # Lowercase, trim, and remove non-letter characters
-def normalizeString(s, stemmer):
-    #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(str))))
+def normalizeString(s,lemmatizer):
+    #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
+    #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(s))))
+    word_list = nltk.word_tokenize(s)
+    s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
     s = s.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
@@ -91,11 +95,12 @@ def normalizeString(s, stemmer):
     return s
 
 def clean_data(rows):
-    #?? add tokenization lemma and stem
+    #tokenization lemma and stem     but stemer is not good at all!!  tried--> tri !!! but in lemma: tried-->try  what about pos?!
     normalized_rows = []
-    stemmer = SnowballStemmer("english")
+    #stemmer = SnowballStemmer("english")
+    lemmatizer = WordNetLemmatizer()
     for row in rows:
-        normalized_row = [normalizeString(r, stemmer) for r in row]
+        normalized_row = [normalizeString(r, lemmatizer) for r in row]
         normalized_rows.append(normalized_row)
     return normalized_rows
 
@@ -103,7 +108,7 @@ def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
     rows = list(reader)[0:]
-    print(len(rows))
+    print('line count: ',len(rows))
     rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
@@ -155,7 +160,7 @@ def build_vocab(train_data, valid_data, vocab_path, trim):
 
     return voc
 
-def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):
+def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
     lines = open(filename).readlines()
     embeddings = {}
     not_oov = 0
@@ -215,6 +220,7 @@ def numberize(inp, vocab, max_utt_num , max_utt_length, dic, is_context):
     #result = torch.cat((torch.FloatTensor(result).unsqueeze(1),torch.FloatTensor(idf_features).unsqueeze(1), torch.FloatTensor(tf_features).unsqueeze(1)),1)
     return final_seq   #dim seq*(numOffeatures+1)  here is 2(0:word indx, 1:idf, 2:tf)
 
+#????????????????????????????????
 def process_predict_embed(response):
     stemmer = SnowballStemmer("english")
     response = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(response))))
