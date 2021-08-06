@@ -28,7 +28,7 @@ class Voc:
 
     def addSentence(self, sentence, is_context, is_response):
         words_in_sentece = []
-        for word in sentence.split():#word_tokenize(sentence):    #or nltk tokenize
+        for word in word_tokenize(sentence):    #or nltk tokenize
             self.addWord(word)
             if word not in words_in_sentece:
                 words_in_sentece.append(word)
@@ -61,7 +61,7 @@ class Voc:
 
         keep_words = []
 
-        keep_words.append("__UNK__>")
+        keep_words.append("<UNK>")
         for k, v in self.word2count.items():
             if v >= min_count:
                 keep_words.append(k)
@@ -104,7 +104,7 @@ def readFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
     rows = list(reader)[0:]
     print(len(rows))
-    #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
+    rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
@@ -133,9 +133,9 @@ def build_vocab(train_data, valid_data, vocab_path, trim):
         if text[0] == '1':
             context = ''
             for j in range(1, len(text) - 1):
-                context = context + text[j] + " __eot__ "
+                context = context + text[j] + " eot "
             voc.addSentence(context, True, False)
-            voc.addSentence(text[-1] + " __eot__ ", False, True)  # for context data it contains only context response pairs with label 1
+            voc.addSentence(text[-1] + " eot ", False, True)  # for context data it contains only context response pairs with label 1
             i += 1
 
     # for text in valid_data:
@@ -147,7 +147,7 @@ def build_vocab(train_data, valid_data, vocab_path, trim):
     #         voc.addSentence(text[-1] + " eot ", False, True)  #for valid data it contains only ground response
     #         i += 1
     if trim:
-        voc.trim(10)
+        voc.trim(8)
 
     with open(vocab_path, 'w') as f:
         f.writelines("%s\n" % w for w in voc.unique_vocabs)
@@ -171,7 +171,7 @@ def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):
 def numberize(inp, vocab, max_utt_num , max_utt_length, dic, is_context):
     #max_len = max_utt_num * max_utt_length
     if is_context:
-        nested_inp = inp.split('__eot__')[:-1]   #-1 is for ignoring the last one which is empty #change to eot for run in cuda and uncomment clean_data
+        nested_inp = inp.split('eot')[:-1]   #-1 is for ignoring the last one which is empty #change to eot for run in cuda and uncomment clean_data
         #nested_inp = [item for item in nested_inp if len(item)>2]
         selected_turns = nested_inp[-min(max_utt_num, len(nested_inp)):]
         selected_words_in_turns = [words.split()[:min(len(words),max_utt_length)] for words in selected_turns]
@@ -241,8 +241,8 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
         label = row[0]
         context = ''
         for i in range(1, len(row) - 1):
-            context = context + row[i] + " __eot__ "
-        response = row[-1] + " __eot__ "
+            context = context + row[i] + " eot "
+        response = row[-1] + " eot "
 
         if is_topNet:
             #response_user_id = rowuid[0].split(",")[-1].split("-")[1]
