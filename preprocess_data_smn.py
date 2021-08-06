@@ -9,6 +9,7 @@ from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
+nltk.download('wordnet')
 
 ######################################################################
 # Load & Preprocess Data
