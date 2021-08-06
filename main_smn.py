@@ -17,13 +17,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def set_seeds():
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
     torch.manual_seed(0)
     torch.cuda.manual_seed_all(0)
     np.random.seed(0)
     random.seed(0)
-
-#load data and vocab
 
 set_seeds()
 print('hello SMN!!')
@@ -33,7 +31,7 @@ print('hello SMN!!')
 train_rows, valid_rows, test_rows, vocab, dic, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, valid_uids_path, test_uids_path)
 vocab_size = len(vocab) + 1 #for padding
 
-with open('../../data/MSDialog/clustered_completegraph.csv') as f:
+with open(clusters_path) as f:
     next(f)  #ignore the header line
     reader = csv.reader(f)
     utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
@@ -56,6 +54,8 @@ model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(adam_beta1, adam_beta2))
 loss_fn = torch.nn.BCELoss()  #binary cross entropy loss
 loss_fn.to(device)
+#pos_weight = torch.FloatTensor([NUM_PER_SAMPLE - 1]).to(device)
+#criterion = nn.BCEWithLogitsLoss(reduction='sum', pos_weight=pos_weight)
 
  #####################################################################################
  ###*****************************  run model **************************************###

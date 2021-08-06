@@ -29,7 +29,7 @@ hidden_size = 100  # rnn dim hidden states
 kernel_size = 3  #for both convolutional and maxpool
 kernel_num = 2
 dropout_rate = 0.2
-#vocab_size = 91620  # vocab size
+#vocab_size = 91620
 max_utterance_length = 90   #90 as in paper said    but also check 50
 max_conv_utt_num = 10
 

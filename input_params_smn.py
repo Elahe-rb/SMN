@@ -14,17 +14,32 @@ vocab_path = 'data/vocabulary.txt'  #in vocab file ro az vocab code dual encoder
 IS_HIERARCHICAL = False
 clusterNumber = 6
 
-save_model_path = '../../data/MSDialog/saved_mode.pth'
-train_path = '../../data/MSDialog/train.tsv'
-valid_path = '../../data/MSDialog/valid.tsv'
-test_path = '../../data/MSDialog/test.tsv'
-vocab_path = '../../data/MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
-test_results_path = '../../data/MSDialog/test_scores.txt'
-valid_results_path = '../../data/MSDialog/valid_scores.txt'
-train_uids_path = '../../data/MSDialog/train_uids.tsv'
-valid_uids_path = '../../data/MSDialog/valid_uids.tsv'
-test_uids_path = '../../data/MSDialog/test_uids.tsv'
 
+
+save_model_path = '/../../data/MSDialog/saved_mode.pth'
+train_path = '/../../data/MSDialog/train.tsv'
+valid_path = '/../../data/MSDialog/valid.tsv'
+test_path = '/../../data/MSDialog/test.tsv'
+vocab_path = '/../../data/MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
+test_results_path = '/../../data/MSDialog/test_scores.txt'
+valid_results_path = '/../../data/MSDialog/valid_scores.txt'
+train_uids_path = '/../../data/MSDialog/train_uids.tsv'
+valid_uids_path = '/../../data/MSDialog/valid_uids.tsv'
+test_uids_path = '/../../data/MSDialog/test_uids.tsv'
+clusters_path = '/../../data/MSDialog/clustered_completegraph.csv'
+
+
+# save_model_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/saved_mode.pth'
+# train_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/train.tsv'
+# valid_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/valid.tsv'
+# test_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/test.tsv'
+# vocab_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
+# test_results_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/test_scores.txt'
+# valid_results_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/valid_scores.txt'
+# train_uids_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/train_uids.tsv'
+# valid_uids_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/valid_uids.tsv'
+# test_uids_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/test_uids.tsv'
+# clusters_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog/clustered_completegraph.csv'
 
 '''
 save_path = '../../datasets/udc_corpus_2/saved_model'
