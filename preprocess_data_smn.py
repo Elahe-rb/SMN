@@ -89,12 +89,12 @@ def normalizeString(s,lemmatizer):
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(s))))
     #word_list = nltk.word_tokenize(s)
     #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
-    word_list = nltk.word_tokenize(s)
-    s = ' '.join([w for w in word_list])
-    s = s.lower().strip()
-    s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
-    s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
-    s = re.sub(r"\s+", r" ", s).strip()
+    #word_list = nltk.word_tokenize(s)
+    #s = ' '.join([w for w in word_list])
+    #s = s.lower().strip()
+    #s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
+    #s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
+    #s = re.sub(r"\s+", r" ", s).strip()
     return s
 
 def clean_data(rows):
@@ -103,7 +103,7 @@ def clean_data(rows):
     #stemmer = SnowballStemmer("english")
     lemmatizer = WordNetLemmatizer()
     for row in rows:
-        normalized_row = [normalizeString(r, lemmatizer) for r in row]
+        normalized_row = [nltk.tokenize(r) for r in row]#[normalizeString(r, lemmatizer) for r in row]
         normalized_rows.append(normalized_row)
     return normalized_rows
 
