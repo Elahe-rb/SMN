@@ -103,7 +103,7 @@ def clean_data(rows):
     #stemmer = SnowballStemmer("english")
     lemmatizer = WordNetLemmatizer()
     for row in rows:
-        normalized_row = [nltk.tokenize(r) for r in row]#[normalizeString(r, lemmatizer) for r in row]
+        normalized_row = ''#'[nltk.tokenize(r) for r in row]#[normalizeString(r, lemmatizer) for r in row]
         normalized_rows.append(normalized_row)
     return normalized_rows
 
@@ -112,7 +112,7 @@ def readFile(filepath):
     reader = csv.reader(open(filepath), delimiter="\t")
     rows = list(reader)[0:]
     print('line count: ',len(rows))
-    rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
+    #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
