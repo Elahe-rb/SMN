@@ -8,6 +8,7 @@ from torch.autograd import Variable
 from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from collections import Counter
 nltk.download('punkt')
 
 ######################################################################
@@ -71,7 +72,7 @@ class Voc:
                 keep_words.append(k)
 
         print('keep_words {} / {} = {:.4f}'.format(
-            len(keep_words), len(self.word2count), len(keep_words) / len(self.word2count)
+            len(keep_words), (len(self.word2count)+1), len(keep_words) / (len(self.word2count)+1) #+1 is for unk which is not in word2count but in keep words
         ))
 
         # Reinitialize dictionaries
@@ -131,7 +132,28 @@ def load_vocab(filename):
     for i,word in enumerate(lines)
   }
 
-def build_vocab(train_data, valid_data, vocab_path, trim):
+def build_vocab(data,args):
+    text = []
+    for dialog in data:
+        #if text[0] == 1:  #just for context and true response pairs
+        for utt in range(1,len(dialog)):
+            text.extend(dialog[utt].split())
+    vocab_counter = Counter(text)
+    unk_count = 0
+    for w in list(vocab_counter.keys()):
+        f = vocab_counter[w]
+        if f < args.trim:
+            unk_count += f
+            vocab_counter.pop(w)
+    words_set = set(vocab_counter.keys())
+    itos = ['__UNK__', '__PAD__'] + list(words_set)
+    stoi = {v: i for i, v in enumerate(itos)}
+
+    return stoi
+
+
+
+def build_vocab_1(train_data, valid_data, vocab_path, trim):
 
     voc = Voc()
 
@@ -175,7 +197,7 @@ def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
     print(len(vocab)-not_oov)
     return embeddings
 
-def numberize(inp, vocab, max_utt_num , max_utt_length, dic, is_context):
+def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
     #max_len = max_utt_num * max_utt_length
     if is_context:
         nested_inp = inp.split('eot')[:-1]   #-1 is for ignoring the last one which is empty #change to eot for run in cuda and uncomment clean_data
@@ -229,7 +251,7 @@ def process_predict_embed(response):
     response = numberize(response)
     return response
 
-def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, dic, device, is_topNet, uids_rows, cluster_ids):
+def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device, is_topNet, uids_rows, cluster_ids):
     count = 0
     cs = []
     rs = []
@@ -256,8 +278,8 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
             #response_user_id = rowuid[0].split(",")[-1].split("-")[1]
             cluster = 0#cluster_ids.get(response_user_id)
 
-        context = numberize(context, vocab, max_utt_num, max_utt_length, dic, True)  #dim: context: seq*num_of_features
-        response = numberize(response, vocab, max_utt_num, max_utt_length, dic, False) #dim: response: seq*num_of_features
+        context = numberize(context, vocab, max_utt_num, max_utt_length, True)  #dim: context: seq*num_of_features
+        response = numberize(response, vocab, max_utt_num, max_utt_length, False) #dim: response: seq*num_of_features
         label = int(label)
         count += 1
         cs.append(torch.LongTensor(context))
@@ -276,7 +298,7 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
 
     return cs, rs, ys
 
-def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, dic, device):
+def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device):
 
     batched_cs = []
     batched_rs = [] #contains ground response and its corresponding distractors
@@ -289,9 +311,9 @@ def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
         distractors = row[2:]
         temp_dis = []
 
-        context = numberize(context, vocab, max_utt_num, max_utt_length, dic, True)
-        correct_response = numberize(correct_response, vocab, max_utt_num, max_utt_length, dic, False)
-        distractors = [numberize(distractor, vocab, max_utt_num, max_utt_length, dic, False) for distractor in distractors] #dim: 9*seq*numFeatures
+        context = numberize(context, vocab, max_utt_num, max_utt_length, True)
+        correct_response = numberize(correct_response, vocab, max_utt_num, max_utt_length, False)
+        distractors = [numberize(distractor, vocab, max_utt_num, max_utt_length, False) for distractor in distractors] #dim: 9*seq*numFeatures
 
         with torch.no_grad():
             cs = torch.stack([context for i in range(10)], 0).to(device)   #10*seq*numF
@@ -304,17 +326,19 @@ def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
 
     return batched_cs, batched_rs   #b*10*seq*numF
 
+
 def load_Data(args):
     train = readFile(os.path.join(args.dataPath,"train.tsv"))
     train_uids = readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
     train_data = list(zip(train, train_uids))
-    random.shuffle(train_data)
+    #random.shuffle(train_data)
     train, train_uids = zip(*train_data)
     valid = readFile(os.path.join(args.dataPath,"valid.tsv"))
     valid_uids = readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
     test = readFile(os.path.join(args.dataPath,"test.tsv"))
     test_uids = readUidsFile(os.path.join(args.dataPath,"test_uids.tsv"))
     #to build vocabulary.txt
-    dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
-    vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
-    return train, valid, test, vocab, dic, train_uids, valid_uids, test_uids
+    # dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
+    # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
+    vocab = build_vocab(train, args)
+    return train, valid, test, vocab, train_uids, valid_uids, test_uids

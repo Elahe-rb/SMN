@@ -28,6 +28,7 @@ set_seeds()
 def define_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-dataPath', default=data_file_path)
+    parser.add_argument('-trim', default=min_freq)
     return parser
 
 args, _ = define_args().parse_known_args()
@@ -37,7 +38,7 @@ print('hello SMN!!')
 
 
 ##############################  load data and vocab #################################
-train_rows, valid_rows, test_rows, vocab, dic, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
+train_rows, valid_rows, test_rows, vocab, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
 vocab_size = len(vocab) + 1  #for padding
 
 with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
@@ -78,10 +79,10 @@ losses = [1]
 ######### train and validation #########################
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
-    model, train_losses = train_smn.train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, vocab, max_conv_utt_num, max_utterance_length, dic, device, train_uids_rows, utts_cluster_ids_complete)
+    model, train_losses = train_smn.train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, vocab, max_conv_utt_num, max_utterance_length, device, train_uids_rows, utts_cluster_ids_complete)
 
     with torch.no_grad():
-        val_R1, val_R2, val_R5, acc = evaluate_smn.evaluate(model, valid_rows, evaluate_batch_size, epoch, num_epochs, vocab, max_conv_utt_num, max_utterance_length, dic, device, valid_uids_rows, utts_cluster_ids_complete)
+        val_R1, val_R2, val_R5, acc = evaluate_smn.evaluate(model, valid_rows, evaluate_batch_size, epoch, num_epochs, vocab, max_conv_utt_num, max_utterance_length, device, valid_uids_rows, utts_cluster_ids_complete)
 
     print('-' * 80)
     description = (
@@ -112,7 +113,7 @@ model.load_state_dict(torch.load(os.path.join(args.dataPath,"saved_model.pth")))
 model.to(device)
 
 # Run on test data.
-test_R1, test_R2, test_R5, test_acc = evaluate_smn.evaluate(model, test_rows, evaluate_batch_size, 0, num_epochs, vocab, max_conv_utt_num, max_utterance_length, dic, device, test_uids_rows, utts_cluster_ids_complete)
+test_R1, test_R2, test_R5, test_acc = evaluate_smn.evaluate(model, test_rows, evaluate_batch_size, 0, num_epochs, vocab, max_conv_utt_num, max_utterance_length, device, test_uids_rows, utts_cluster_ids_complete)
 
 print('=' * 89)
 description = (
