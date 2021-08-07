@@ -88,6 +88,8 @@ def normalizeString(s,lemmatizer):
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(s))))
     #word_list = nltk.word_tokenize(s)
     #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+    word_list = nltk.word_tokenize(s)
+    s = ' '.join([w for w in word_list])
     s = s.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
