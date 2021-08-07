@@ -8,8 +8,6 @@ from torch.autograd import Variable
 from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-nltk.download('punkt')
-nltk.download('wordnet')
 
 ######################################################################
 # Load & Preprocess Data
@@ -88,8 +86,8 @@ class Voc:
 def normalizeString(s,lemmatizer):
     #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(s))))
-    word_list = nltk.word_tokenize(s)
-    s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+    #word_list = nltk.word_tokenize(s)
+    #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
     s = s.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
