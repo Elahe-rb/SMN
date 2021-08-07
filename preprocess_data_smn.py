@@ -30,7 +30,8 @@ class Voc:
 
     def addSentence(self, sentence, is_context, is_response):
         words_in_sentece = []
-        for word in sentence.split():#word_tokenize(sentence):    #or nltk tokenize
+        word_list = nltk.word_tokenize(sentence)
+        for word in word_list: #sentence.split():   #or nltk tokenize
             self.addWord(word)
             #for tf_idf
             if word not in words_in_sentece:
