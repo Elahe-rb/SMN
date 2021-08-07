@@ -3,7 +3,7 @@ import re
 import csv
 import nltk
 import random
-import math
+import os
 from torch.autograd import Variable
 from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
@@ -32,6 +32,7 @@ class Voc:
         words_in_sentece = []
         for word in sentence.split():#word_tokenize(sentence):    #or nltk tokenize
             self.addWord(word)
+            #for tf_idf
             if word not in words_in_sentece:
                 words_in_sentece.append(word)
         if is_context:
@@ -86,24 +87,21 @@ class Voc:
 # Lowercase, trim, and remove non-letter characters
 def normalizeString(s,lemmatizer):
     #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
-    #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(s))))
     #word_list = nltk.word_tokenize(s)
     #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
-    #word_list = nltk.word_tokenize(s)
-    #s = ' '.join([w for w in word_list])
-    #s = s.lower().strip()
-    #s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
-    #s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
-    #s = re.sub(r"\s+", r" ", s).strip()
+    s = s.lower().strip()
+    s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
+    s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
+    s = re.sub(r"\s+", r" ", s).strip()
     return s
 
 def clean_data(rows):
     #tokenization lemma and stem     but stemer is not good at all!!  tried--> tri !!! but in lemma: tried-->try  what about pos?!
     normalized_rows = []
-    #stemmer = SnowballStemmer("english")
+    stemmer = SnowballStemmer("english")
     lemmatizer = WordNetLemmatizer()
     for row in rows:
-        normalized_row = ''#'[nltk.tokenize(r) for r in row]#[normalizeString(r, lemmatizer) for r in row]
+        normalized_row = [normalizeString(r, lemmatizer) for r in row]
         normalized_rows.append(normalized_row)
     return normalized_rows
 
@@ -111,7 +109,7 @@ def readFile(filepath):
 
     reader = csv.reader(open(filepath), delimiter="\t")
     rows = list(reader)[0:]
-    print('line count: ',len(rows))
+    print('#file_line: ',len(rows))
     #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
@@ -141,7 +139,7 @@ def build_vocab(train_data, valid_data, vocab_path, trim):
         if text[0] == '1':
             context = ''
             for j in range(1, len(text) - 1):
-                context = context + text[j] + " eot "
+                context = context + text[j] + " eot "      #whole context of a conversation
             voc.addSentence(context, True, False)
             voc.addSentence(text[-1] + " eot ", False, True)  # for context data it contains only context response pairs with label 1
             i += 1
@@ -305,17 +303,17 @@ def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
 
     return batched_cs, batched_rs   #b*10*seq*numF
 
-def load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, valid_uids_path, test_uids_path,):
-    train = readFile(train_path)
-    train_uids = readUidsFile(train_uids_path)
+def load_Data(args):
+    train = readFile(os.path.join(args.dataPath,"train.tsv"))
+    train_uids = readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
     train_data = list(zip(train, train_uids))
     random.shuffle(train_data)
     train, train_uids = zip(*train_data)
-    valid = readFile(valid_path)
-    valid_uids = readUidsFile(valid_uids_path)
-    test = readFile(test_path)
-    test_uids = readUidsFile(test_uids_path)
+    valid = readFile(os.path.join(args.dataPath,"valid.tsv"))
+    valid_uids = readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
+    test = readFile(os.path.join(args.dataPath,"test.tsv"))
+    test_uids = readUidsFile(os.path.join(args.dataPath,"test_uids.tsv"))
     #to build vocabulary.txt
-    dic = build_vocab(train , valid, vocab_path, trim = True)
-    vocab = load_vocab(vocab_path)
+    dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
+    vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
     return train, valid, test, vocab, dic, train_uids, valid_uids, test_uids

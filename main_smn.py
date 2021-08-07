@@ -1,7 +1,7 @@
-import sys
+import os
 import torch
 import time
-from torch import optim
+import argparse
 import numpy as np
 import random
 import csv
@@ -24,14 +24,23 @@ def set_seeds():
     random.seed(0)
 
 set_seeds()
+
+def define_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-dataPath', default=data_file_path)
+    return parser
+
+args, _ = define_args().parse_known_args()
+
+
 print('hello SMN!!')
 
-#load data and vocab
-##### UDC or msDialog
-train_rows, valid_rows, test_rows, vocab, dic, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(train_path, valid_path, test_path, vocab_path, train_uids_path, valid_uids_path, test_uids_path)
-vocab_size = len(vocab) + 1 #for padding
 
-with open(clusters_path) as f:
+##############################  load data and vocab #################################
+train_rows, valid_rows, test_rows, vocab, dic, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
+vocab_size = len(vocab) + 1  #for padding
+
+with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
     next(f)  #ignore the header line
     reader = csv.reader(f)
     utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
@@ -89,7 +98,7 @@ for epoch in range(num_epochs):
 
     # Save the model if the validation loss is the best we've seen so far.
     if not best_val_metric or val_R1 > best_val_metric:
-        torch.save(model.state_dict(), save_model_path)
+        torch.save(model.state_dict(), os.path.join(args.dataPath,"saved_model.pth"))
         best_val_metric = val_R1
   #  else:
         # Anneal the learning rate if no improvement has been seen in the validation dataset.
@@ -99,7 +108,7 @@ for epoch in range(num_epochs):
 ########################################################################################################
 
 # Load the best saved model.
-model.load_state_dict(torch.load(save_model_path))
+model.load_state_dict(torch.load(os.path.join(args.dataPath,"saved_model.pth")))
 model.to(device)
 
 # Run on test data.
