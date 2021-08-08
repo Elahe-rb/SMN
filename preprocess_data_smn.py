@@ -135,10 +135,10 @@ def load_vocab(filename):
 def build_vocab(data,args):
     text = []
     for dialog in data:
-        #if text[0] == 1:  #just for context and true response pairs
-        for utt in range(1,len(dialog)):
-            text.extend(dialog[utt].split())
-            text.extend(['eot'])
+        if dialog[0] == 1:  #just for context and true response pairs
+            for utt in range(1,len(dialog)):
+                text.extend(dialog[utt].split())
+                text.extend(['eot'])
     vocab_counter = Counter(text)
     text_length = sum(vocab_counter.values())
     total_words = len(list(vocab_counter.keys()))

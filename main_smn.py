@@ -12,7 +12,7 @@ import train_smn
 import evaluate_smn
 import smn
 
-# Device configuration
+#########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def set_seeds():
@@ -33,7 +33,6 @@ def define_args():
 
 args, _ = define_args().parse_known_args()
 
-
 print('hello SMN!!')
 
 
@@ -45,6 +44,8 @@ with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
     next(f)  #ignore the header line
     reader = csv.reader(f)
     utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
+
+
 
 ############################ define model ############################################
 
