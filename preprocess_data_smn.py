@@ -151,7 +151,7 @@ def build_vocab(data,args):
     words_set = set(vocab_counter.keys())
     kept_words = len(words_set)
 
-    itos = ['__UNK__', '__PAD__'] + list(words_set)
+    itos = ['__PAD__','__UNK__'] + list(words_set)
     stoi = {v: i for i, v in enumerate(itos)}
 
     print('keep_words:: {} / {} = {:.4f}'.format(kept_words, total_words, kept_words / total_words))
@@ -203,7 +203,7 @@ def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
         if word in vocab:
             embeddings[vocab[word]] = embedding
             not_oov = not_oov + 1
-    print(len(vocab)-not_oov)
+    print('#OOV:: {} / {} = {:.4f}'.format(len(vocab)-not_oov,len(vocab), len(vocab)-not_oov/len(vocab)))
     return embeddings
 
 def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):

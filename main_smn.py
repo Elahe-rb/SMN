@@ -39,7 +39,7 @@ print('hello SMN!!')
 
 ##############################  load data and vocab #################################
 train_rows, valid_rows, test_rows, vocab, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
-vocab_size = len(vocab) + 1  #for padding
+vocab_size = len(vocab)   #for padding
 
 with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
     next(f)  #ignore the header line
