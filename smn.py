@@ -28,7 +28,7 @@ class SMN(nn.Module):
         super(SMN, self).__init__()
         self.num_directions = 2 if bidirectional else 1
         self.vocab = vocab
-        self.vocab_size = len(vocab) + 1  # +1 is for padding words
+        self.vocab_size = vocab_size
         self.emb_h_size = input_size  # embedding dim
         self.rnn_h_size = hidden_size  # rnn hidden dim
         self.num_layers = num_layers
