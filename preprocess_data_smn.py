@@ -343,7 +343,7 @@ def load_Data(args):
     train_uids = readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
     #train_data = list(zip(train, train_uids))
     #random.shuffle(train_data)
-    random.shuffle(train)
+    #random.shuffle(train)
     #train, train_uids = zip(*train_data)
     valid = readFile(os.path.join(args.dataPath,"valid.tsv"),'valid')
     valid_uids = readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
