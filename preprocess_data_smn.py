@@ -138,16 +138,25 @@ def build_vocab(data,args):
         #if text[0] == 1:  #just for context and true response pairs
         for utt in range(1,len(dialog)):
             text.extend(dialog[utt].split())
+            text.extend(['eot'])
     vocab_counter = Counter(text)
+    text_length = sum(vocab_counter.values())
+    total_words = len(list(vocab_counter.keys()))
     unk_count = 0
     for w in list(vocab_counter.keys()):
-        f = vocab_counter[w]
-        if f < args.trim:
-            unk_count += f
+        if vocab_counter[w] < args.trim:
+            unk_count += vocab_counter[w]
             vocab_counter.pop(w)
+    trimmed_text_length = sum(vocab_counter.values())
     words_set = set(vocab_counter.keys())
+    kept_words = len(words_set)
+
     itos = ['__UNK__', '__PAD__'] + list(words_set)
     stoi = {v: i for i, v in enumerate(itos)}
+
+    print('keep_words:: {} / {} = {:.4f}'.format(kept_words, total_words, kept_words / total_words))
+
+    print('keep_text_percentage:: {} / {} = {:.4f}'.format(trimmed_text_length, text_length, trimmed_text_length / text_length))
 
     return stoi
 
