@@ -399,6 +399,6 @@ def load_Data(args):
     vocab = build_vocab(train, args)
 
     numberized_train = numberize(train, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_valid = ''#numberize(valid, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_test = ''#numberize(test, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_valid = numberize(valid, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_test = numberize(test, vocab, args.maxUttNum, args.maxUttLen)
     return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
