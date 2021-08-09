@@ -17,7 +17,7 @@ def evaluate(model,rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_
     for batch in range(num_iters):
 
         #dim: batched_context: b*10*seqLength (is concatenated with itself 10 times)  batched_responses: b*10*seqLength
-        batched_context, batched_responses, labels = preprocess_data_smn.process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device, False, uids_rows, cluster_ids)
+        batched_context, batched_responses, labels = preprocess_data_smn.process_train_data(rows, batch, batch_size, vocab, device, False, uids_rows, cluster_ids)
 
         for j in range(int(len(batched_context)/10)):  #for each context in batch with its ten candidate responses
             sidx = j*10
