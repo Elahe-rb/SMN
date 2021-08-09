@@ -255,6 +255,44 @@ def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
     #result = torch.cat((torch.FloatTensor(result).unsqueeze(1),torch.FloatTensor(idf_features).unsqueeze(1), torch.FloatTensor(tf_features).unsqueeze(1)),1)
     return final_seq   #dim seq*(numOffeatures+1)  here is 2(0:word indx, 1:idf, 2:tf)
 
+#################################
+
+def numberize(data, vocab, max_utt_num , max_utt_length):
+    #max_len = max_utt_num * max_utt_length
+    numberized_data = []
+    for dialog in data:
+        numberized_row = []
+
+        #dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
+        selected_turns = dialog[-min(max_utt_num, len(dialog)-1):-1]   #=1 is for response and -1 is for first word which is label 0 or 1
+        selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
+
+        padded_nested_results = []
+        PAD_SEQUENCE = [0] * max_utt_length
+        for turn_sequence in selected_words_in_turns:
+            selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
+            if(len(selected_context)<max_utt_length):  #padding
+                selected_context += [0] * (max_utt_length - len(selected_context))   #post padding
+            padded_nested_results.append(selected_context)
+        if(len(padded_nested_results)<max_utt_num):
+            padded_nested_results += [PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))
+
+        ## and also for response
+        response_words = dialog[-1].split()
+        selected_words_in_response = response_words[:min(len(response_words), max_utt_length)]
+        selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
+        if (len(selected_response) < max_utt_length):  # padding
+            selected_response += [0] * (max_utt_length - len(selected_response))  # post padding
+        if len(selected_response) != max_utt_length:
+            print('errrrrorrr')
+
+        numberized_row.append(dialog[0])
+        numberized_row = numberized_row + padded_nested_results
+        numberized_row.append(selected_response)
+        numberized_data.append(numberized_row)
+
+    return numberized_data   #dim seq*(numOffeatures+1)  here is 2(0:word indx, 1:idf, 2:tf)
+
 #????????????????????????????????
 def process_predict_embed(response):
     stemmer = SnowballStemmer("english")
@@ -262,7 +300,7 @@ def process_predict_embed(response):
     response = numberize(response)
     return response
 
-def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device, is_topNet, uids_rows, cluster_ids):
+def process_train_data(rows, batch, batch_size, vocab, device, is_topNet, uids_rows, cluster_ids):
     count = 0
     cs = []
     rs = []
@@ -280,17 +318,23 @@ def process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
     for row in batched_rows:
 
         label = row[0]
-        context = ''
-        for i in range(1, len(row) - 1):
-            context = context + row[i] + " eot "
-        response = row[-1] + " eot "
+        #context = ''
+        # for i in range(1, len(row) - 1):
+        #     context = context + row[i] + str(vocab.get('eot'))
+        # context.append(str(vocab.get('eot'))
+        # response = row[-1] + str(vocab.get('eot'))
+
+        #[utt.append(vocab.get('eot')) for utt in row[1:-1]]
+        #row[-1].append(vocab.get('eot'))
+        context = row[1:-1]
+        response = row[-1]
 
         if is_topNet:
             #response_user_id = rowuid[0].split(",")[-1].split("-")[1]
             cluster = 0#cluster_ids.get(response_user_id)
 
-        context = numberize(context, vocab, max_utt_num, max_utt_length, True)  #dim: context: seq*num_of_features
-        response = numberize(response, vocab, max_utt_num, max_utt_length, False) #dim: response: seq*num_of_features
+        #context = ''#numberize(context, vocab, max_utt_num, max_utt_length, True)  #dim: context: seq*num_of_features
+        #response = ''#numberize(response, vocab, max_utt_num, max_utt_length, False) #dim: response: seq*num_of_features
         label = int(label)
         count += 1
         cs.append(torch.LongTensor(context))
@@ -353,4 +397,8 @@ def load_Data(args):
     # dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
     # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
     vocab = build_vocab(train, args)
-    return train, valid, test, vocab, train_uids, valid_uids, test_uids
+
+    numberized_train = numberize(train, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_valid = ''#numberize(valid, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_test = ''#numberize(test, vocab, args.maxUttNum, args.maxUttLen)
+    return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids

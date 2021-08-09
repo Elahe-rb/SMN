@@ -15,7 +15,7 @@ def train(model, loss_fn, optimizer, rows, batch_size, epoch, num_epochs, vocab,
     log_interval = math.ceil(num_iters / 5)
 
     for batch in range(num_iters):
-        cs, rs, ys = preprocess_data_smn.process_train_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device, False, uids_rows, cluster_ids)
+        cs, rs, ys = preprocess_data_smn.process_train_data(rows, batch, batch_size, vocab, device, False, uids_rows, cluster_ids)
 
         optimizer.zero_grad()
 

@@ -29,6 +29,8 @@ def define_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-dataPath', default=data_file_path)
     parser.add_argument('-trim', default=min_freq)
+    parser.add_argument('-maxUttNum', default=max_conv_utt_num)
+    parser.add_argument('-maxUttLen', default=max_utterance_length)
     return parser
 
 args, _ = define_args().parse_known_args()
