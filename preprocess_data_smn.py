@@ -137,12 +137,13 @@ def build_vocab(data,args):
     for dialog in data:
         if dialog[0] == '1':  #just for context and true response pairs + negative responses
             for utt in range(1,len(dialog)-1):
-                text.extend(dialog[utt].split())
+                #text.extend(dialog[utt].split())
+                text.extend(nltk.word_tokenize(dialog[utt]))
                 text.extend(['eot'])
-        text.extend(dialog[-1].split())
+        #text.extend(dialog[-1].split())
+        text.extend(nltk.word_tokenize(dialog[-1]))
         text.extend(['eot'])
-    tokenized_text = nltk.tokenize(text)
-    vocab_counter = Counter(tokenized_text)
+    vocab_counter = Counter(text)
     text_length = sum(vocab_counter.values())
     total_words = len(list(vocab_counter.keys()))
     unk_count = 0
@@ -266,8 +267,7 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
 
         #dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
         selected_turns = dialog[-min(max_utt_num, len(dialog)-1):-1]   #=1 is for response and -1 is for first word which is label 0 or 1
-        tokenized_selected_turns = nltk.tokenize(selected_turns)
-        selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in tokenized_selected_turns]
+        selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]#[words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
 
         padded_nested_results = []
         PAD_SEQUENCE = [0] * max_utt_length
