@@ -89,6 +89,10 @@ class SMN(nn.Module):
         init.xavier_uniform_(self.Amatrix)
         self.Amatrix = self.Amatrix.to(device)
 
+        self.Bmatrix = torch.ones((self.emb_h_size, self.emb_h_size), requires_grad=True)
+        init.xavier_uniform_(self.Bmatrix)
+        self.Bmatrix = self.Bmatrix.to(device)
+
         self.final_GRU = nn.GRU(50, self.rnn_h_size, bidirectional=False, batch_first=True)
         ih_f = (param.data for name, param in self.final_GRU.named_parameters() if 'weight_ih' in name)
         hh_f = (param.data for name, param in self.final_GRU.named_parameters() if 'weight_hh' in name)
@@ -147,7 +151,9 @@ class SMN(nn.Module):
         matching_vectors = []
 
         for utterance_embeddings in all_utterance_embeddings:
-            matrix1 = torch.matmul(utterance_embeddings, response_embeddings)  # batch*utlen*utlen<-- batch*uttlength*embdim   , batch*embdim*uttlength
+            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Bmatrix])
+            matrix1 = torch.matmul(matrix1, response_embeddings)
+            #matrix1 = torch.matmul(utterance_embeddings, response_embeddings)  # batch*utlen*utlen<-- batch*uttlength*embdim   , batch*embdim*uttlength
 
             utterance_GRU_embeddings, _ = self.utterance_GRU(utterance_embeddings)
             matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Amatrix])

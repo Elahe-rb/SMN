@@ -31,8 +31,8 @@ class Voc:
 
     def addSentence(self, sentence, is_context, is_response):
         words_in_sentece = []
-        word_list = nltk.word_tokenize(sentence)
-        for word in word_list: #sentence.split():   #or nltk tokenize
+        word_list = sentence.split() #nltk.word_tokenize(sentence)
+        for word in word_list:
             self.addWord(word)
             #for tf_idf
             if word not in words_in_sentece:
@@ -137,11 +137,11 @@ def build_vocab(data,args):
     for dialog in data:
         if dialog[0] == '1':  #just for context and true response pairs + negative responses
             for utt in range(1,len(dialog)-1):
-                #text.extend(dialog[utt].split())
-                text.extend(nltk.word_tokenize(dialog[utt]))
+                text.extend(dialog[utt].split())
+                #text.extend(nltk.word_tokenize(dialog[utt]))
                 text.extend(['eot'])
-        #text.extend(dialog[-1].split())
-        text.extend(nltk.word_tokenize(dialog[-1]))
+        text.extend(dialog[-1].split())
+        #text.extend(nltk.word_tokenize(dialog[-1]))
         text.extend(['eot'])
     vocab_counter = Counter(text)
     text_length = sum(vocab_counter.values())
@@ -267,16 +267,16 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
 
         #dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
         selected_turns = dialog[-min(max_utt_num, len(dialog)-1):-1]   #=1 is for response and -1 is for first word which is label 0 or 1
-        selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]#[words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
-
+        selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
+        #selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
         padded_nested_results = []
         PAD_SEQUENCE = [0] * max_utt_length
         for turn_sequence in selected_words_in_turns:
             selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
-            if(len(selected_context)<max_utt_length):  #padding
+            if len(selected_context)<max_utt_length:  #padding
                 selected_context += [0] * (max_utt_length - len(selected_context))   #post padding
             padded_nested_results.append(selected_context)
-        if(len(padded_nested_results)<max_utt_num):
+        if len(padded_nested_results)<max_utt_num:
             padded_nested_results += [PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))
 
         ## and also for response
