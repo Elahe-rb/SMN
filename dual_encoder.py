@@ -30,44 +30,44 @@ class DualEncoder(nn.Module):
         self.rnn_type = rnn_type
         self.p_dropout = dropout
 
-        self.embedding = nn.Embedding(vocab_size, input_size, padding_idx=0)
+        self.embedding = nn.Embedding(vocab_size, input_size, sparse=False, padding_idx=0)
+
+        if rnn_type == 'gru':
+            self.rnn = nn.GRU(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, dropout=0,
+                              bidirectional=bidirectional, batch_first=True).to(device)
+        else:
+            self.rnn = nn.LSTM(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, dropout=0,
+                               bidirectional=bidirectional, batch_first=True).to(device)
+
+        M = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+        init.normal_(M)
+        self.M = nn.Parameter(M, requires_grad=True)
 
         W = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
         init.normal_(W)
         self.W = nn.Parameter(W, requires_grad=True)
 
         self.dropout_layer = nn.Dropout(self.p_dropout)
+        # self.ReLU = nn.ReLU()
+        # self.tanh = nn.Tanh()
+        # dense_dim = 2 * self.encoder.hidden_size
+        # self.dense = nn.Linear(2*dense_dim, dense_dim).to(device)
+        # self.dense2 = nn.Linear(dense_dim, 1).to(device)
 
-
-        ###########################################################################################################
-        self.encoder = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, bias=True, dropout=0).to(device)
-        self.conv2d = nn.Conv2d(2, 8, kernel_size=(3, 3))
-        conv2d_weight = (param.data for name, param in self.conv2d.named_parameters() if "weight" in name)
-        for w in conv2d_weight:
-            init.kaiming_normal_(w)
-
-        self.pool2d = nn.MaxPool2d((3, 3), stride=(3, 3))
-
-        self.linear = nn.Linear(16 * 16 * 8, 50)
-        linear_weight = (param.data for name, param in self.linear.named_parameters() if "weight" in name)
-        for w in linear_weight:
-            init.xavier_uniform_(w)
-
-
-        self.final_linear = nn.Linear(100, 1)
-        final_linear_weight = (param.data for name, param in self.final_linear.named_parameters() if "weight" in name)
-        for w in final_linear_weight:
-            init.xavier_uniform_(w)
-        ############################################################################################################
+        self.layer1 = nn.Sequential(nn.Conv2d(2, 8, kernel_size=3, stride=1, padding=2),  # number of conv kernels = 8
+                                    # nn.BatchNorm2d(8),
+                                    nn.ReLU(),
+                                    nn.MaxPool2d(kernel_size=3, stride=2)).to(device)
+        self.fc1 = nn.Linear(125000, self.rnn_h_size).to(device)  # kernel_num * 80 * 80, hidden_size)
+        self.fc2 = nn.Linear(self.rnn_h_size, 1).to(device)
 
         self.init_weights()
 
     def init_weights(self):
-        init.uniform_(self.encoder.weight_ih_l0, a=-0.01, b=0.01)
-        init.orthogonal_(self.encoder.weight_hh_l0)
-        self.encoder.weight_ih_l0.requires_grad = True
-        self.encoder.weight_hh_l0.requires_grad = True
-
+        init.uniform_(self.rnn.weight_ih_l0, a=-0.01, b=0.01)
+        init.orthogonal_(self.rnn.weight_hh_l0)
+        self.rnn.weight_ih_l0.requires_grad = True
+        self.rnn.weight_hh_l0.requires_grad = True
 
         glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab)
 
@@ -79,39 +79,116 @@ class DualEncoder(nn.Module):
 
         self.embedding.weight = nn.Parameter(embedding_weights, requires_grad=True)
 
-        #self.RNN = nn.GRU(self.emb_h_size, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
-        self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
+
+    #     self.embedding = nn.Embedding(vocab_size, input_size, padding_idx=0)
+    #
+    #     W = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+    #     init.normal_(W)
+    #     self.W = nn.Parameter(W, requires_grad=True)
+    #
+    #     self.dropout_layer = nn.Dropout(self.p_dropout)
+    #
+    #
+    #     ###########################################################################################################
+    #     self.encoder = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, bias=True, dropout=0).to(device)
+    #     self.conv2d = nn.Conv2d(2, 8, kernel_size=(3, 3))
+    #     conv2d_weight = (param.data for name, param in self.conv2d.named_parameters() if "weight" in name)
+    #     for w in conv2d_weight:
+    #         init.kaiming_normal_(w)
+    #
+    #     self.pool2d = nn.MaxPool2d((3, 3), stride=(3, 3))
+    #
+    #     self.linear = nn.Linear(16 * 16 * 8, 50)
+    #     linear_weight = (param.data for name, param in self.linear.named_parameters() if "weight" in name)
+    #     for w in linear_weight:
+    #         init.xavier_uniform_(w)
+    #
+    #
+    #     self.final_linear = nn.Linear(100, 1)
+    #     final_linear_weight = (param.data for name, param in self.final_linear.named_parameters() if "weight" in name)
+    #     for w in final_linear_weight:
+    #         init.xavier_uniform_(w)
+    #     ############################################################################################################
+    #
+    #     self.init_weights()
+    #
+    # def init_weights(self):
+    #     init.uniform_(self.encoder.weight_ih_l0, a=-0.01, b=0.01)
+    #     init.orthogonal_(self.encoder.weight_hh_l0)
+    #     self.encoder.weight_ih_l0.requires_grad = True
+    #     self.encoder.weight_hh_l0.requires_grad = True
+    #
+    #
+    #     glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab)
+    #
+    #     embedding_weights = torch.FloatTensor(self.vocab_size, self.emb_h_size)
+    #     init.uniform_(embedding_weights, a=-0.25, b=0.25)
+    #     for k, v in glove_embeddings.items():
+    #         embedding_weights[k] = torch.FloatTensor(v)
+    #     embedding_weights[0] = torch.FloatTensor([0] * self.emb_h_size)
+    #
+    #     self.embedding.weight = nn.Parameter(embedding_weights, requires_grad=True)
+    #
+    #     #self.RNN = nn.GRU(self.emb_h_size, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
+    #     self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
 
     def forward(self, utterances, response):
         '''
             utterances:(self.batch_size, self.max_num_utterance, self.max_sentence_len)
             response:(self.batch_size, self.max_sentence_len)
         '''
+        contexts_emb = self.embedding(utterances)  # dim: c
+        responses_emb = self.embedding(response)
 
-        #convert a list of seprated utt into a sequence of utt as conv context
-        context = utterances.view(utterances.size(0),-1)      #context dim:  [batchsize , (uttnum*seqlength)]
+        context_os, context_hs = self.rnn(
+            contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
+        response_os, response_hs = self.rnn(
+            responses_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
 
-        context_emb = self.embedding(context)  # dim:  [batchsize , (uttnum*seqlength), emb_dim]
-        response_emb = self.embedding(response) # dim: [batchsize , (seqlength), emb_dim]   ##??shouldn't be the same size with context???
+        if self.rnn_type == 'lstm':
+            context_hs = context_hs[0]
+            response_hs = response_hs[0]
 
-        context_os, context_hs = self.encoder(
-            context_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
-        response_os, response_hs = self.encoder(
-            response_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
         context_hs = context_hs[
             -1]  # dim: b*h   ::get the hidden of last layer(for single layer this is same as context_hs.squeeze(0))
         response_hs = response_hs[
             -1]  # dim: batch_size * hidden_size <=== (numlayers*num direction) * batch_size * hidden_size
+
         ### simple dual gru
-        context = context_hs.mm(self.W).to(device)  # dimensions: (batch_size x hidden_size)  <== (b*h) , (h*h)
-        context_rep = context.view(-1, 1, self.rnn_h_size)  # dimensions: (batch_size x 1 x hidden_size)
-        response_rep = response_hs.view(-1, self.rnn_h_size, 1)  # dimensions: (batch_size x hidden_size x 1)
+        context = context_hs.mm(self.M).to(device)  # dimensions: (batch_size x hidden_size)  <== (b*h) , (h*h)
+        context = context.view(-1, 1, self.rnn_h_size)  # dimensions: (batch_size x 1 x hidden_size)
+        response = response_hs.view(-1, self.rnn_h_size, 1)  # dimensions: (batch_size x hidden_size x 1)
 
-        ans = torch.bmm(context_rep, response_rep).view(-1, 1).to(
+        ans = torch.bmm(context, response).view(-1, 1).to(
             device)  # dimensions: (batch_size x 1 x 1) and lastly --> (batch_size x 1)
-
         results = torch.sigmoid(ans)  # dim: batchsize * 1
+
         return results
+
+        # #convert a list of seprated utt into a sequence of utt as conv context
+        # context = utterances.view(utterances.size(0),-1)      #context dim:  [batchsize , (uttnum*seqlength)]
+        #
+        # context_emb = self.embedding(context)  # dim:  [batchsize , (uttnum*seqlength), emb_dim]
+        # response_emb = self.embedding(response) # dim: [batchsize , (seqlength), emb_dim]   ##??shouldn't be the same size with context???
+        #
+        # context_os, context_hs = self.encoder(
+        #     context_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
+        # response_os, response_hs = self.encoder(
+        #     response_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
+        # context_hs = context_hs[
+        #     -1]  # dim: b*h   ::get the hidden of last layer(for single layer this is same as context_hs.squeeze(0))
+        # response_hs = response_hs[
+        #     -1]  # dim: batch_size * hidden_size <=== (numlayers*num direction) * batch_size * hidden_size
+        # ### simple dual gru
+        # context = context_hs.mm(self.W).to(device)  # dimensions: (batch_size x hidden_size)  <== (b*h) , (h*h)
+        # context_rep = context.view(-1, 1, self.rnn_h_size)  # dimensions: (batch_size x 1 x hidden_size)
+        # response_rep = response_hs.view(-1, self.rnn_h_size, 1)  # dimensions: (batch_size x hidden_size x 1)
+        #
+        # ans = torch.bmm(context_rep, response_rep).view(-1, 1).to(
+        #     device)  # dimensions: (batch_size x 1 x 1) and lastly --> (batch_size x 1)
+        #
+        # results = torch.sigmoid(ans)  # dim: batchsize * 1
+        # return results
         # c = self.emb(c)  # BLE
         # r = self.emb(r)
         #
