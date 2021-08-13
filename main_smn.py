@@ -52,7 +52,7 @@ with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
 
 ############################ define model ############################################
 
-model = smn.SMN(
+model = dual_encoder.DualEncoder(
   vocab=vocab,
   input_size=embed_dim, # embedding dim
   hidden_size=hidden_size, # rnn dim
