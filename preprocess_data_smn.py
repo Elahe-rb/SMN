@@ -271,13 +271,16 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
         #selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
         padded_nested_results = []
         PAD_SEQUENCE = [0] * max_utt_length
+        PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
             selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
             if len(selected_context)<max_utt_length:  #padding
                 selected_context += [0] * (max_utt_length - len(selected_context))   #post padding
+            selected_context[-1] = vocab.get('eot', 1)    #add eot end of each utterance
             padded_nested_results.append(selected_context)
         if len(padded_nested_results)<max_utt_num:
             padded_nested_results += [PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))
+
 
         ## and also for response
         response_words = dialog[-1].split()
@@ -287,6 +290,7 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
             selected_response += [0] * (max_utt_length - len(selected_response))  # post padding
         if len(selected_response) != max_utt_length:
             print('errrrrorrr')
+        selected_response[-1] = vocab.get('eot', 1)    #add eot end of each utterance
 
         numberized_row.append(dialog[0])
         numberized_row = numberized_row + padded_nested_results
@@ -348,12 +352,12 @@ def process_train_data(rows, batch, batch_size, vocab, device, is_topNet, uids_r
 
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * max-utt-num * max_utt-length
     rs = torch.stack(rs, 0).to(device)  #dim: batchsize * max_utt_num
-    ys = torch.stack(ys, 0).to(device)
+    ys = torch.stack(ys, 0).to(device)  #dim: batchsize * 1
 
     if is_topNet:
         return cs, rs, ys, clusters
 
-    return cs, rs, ys
+    return cs, rs, ys               #element type: torch.int64
 
 def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_length, device):
 

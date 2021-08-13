@@ -11,6 +11,7 @@ import preprocess_data_smn
 import train_smn
 import evaluate_smn
 import smn
+import dual_encoder
 
 #########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
