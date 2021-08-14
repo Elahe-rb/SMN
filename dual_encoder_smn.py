@@ -122,8 +122,16 @@ class Encoder(nn.Module):
     def att_on_embedding(self, utterances, responses, c_tf_idf, r_tf_idf): #dim context:b*seq  response:b*seq
 
 
-        contexts = utterances.view(utterances.size(0),-1)
-        contexts_emb = self.embedding(contexts)     #dim: c
+        contexts = utterances.view(utterances.size(0),-1)   #dim context:b*seq    <===  b*max_turn*max_turn_length
+
+        sequential_context = []
+        for cnt in contexts:
+            seq = [word for word in cnt if word!=0]
+            seq += [0]*(500-len(seq))
+            sequential_context.append(seq)
+
+        sequential_context = torch.LongTensor(sequential_context)
+        contexts_emb = self.embedding(sequential_context)     #dim: c
         responses_emb = self.embedding(responses)
 
         # r = self.RNN(responses_emb)[0]

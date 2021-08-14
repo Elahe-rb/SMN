@@ -260,7 +260,7 @@ def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
 #################################
 
 def numberize(data, vocab, max_utt_num , max_utt_length):
-    #max_len = max_utt_num * max_utt_length
+    max_len = max_utt_num * max_utt_length
     numberized_data = []
     for dialog in data:
         numberized_row = []
@@ -269,6 +269,8 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
         selected_turns = dialog[-min(max_utt_num, len(dialog)-1):-1]   #=1 is for response and -1 is for first word which is label 0 or 1
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
         #selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
+        #selected_context = [w for ut in selected_words_in_turns for w in ut]
+
         padded_nested_results = []
         PAD_SEQUENCE = [0] * max_utt_length
         PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
@@ -284,11 +286,11 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
 
         ## and also for response
         response_words = dialog[-1].split()
-        selected_words_in_response = response_words[:min(len(response_words), max_utt_length)]
+        selected_words_in_response = response_words[:min(len(response_words), max_len)]
         selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
-        if (len(selected_response) < max_utt_length):  # padding
-            selected_response += [0] * (max_utt_length - len(selected_response))  # post padding
-        if len(selected_response) != max_utt_length:
+        if (len(selected_response) < max_len):  # padding
+            selected_response += [0] * (max_len - len(selected_response))  # post padding
+        if len(selected_response) != max_len:
             print('errrrrorrr')
         selected_response[-1] = vocab.get('eot', 1)    #add eot end of each utterance
 
