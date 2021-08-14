@@ -315,7 +315,7 @@ def process_train_data(rows, batch, batch_size, vocab, device, is_topNet, uids_r
     clusters = []
 
     batched_rows = get_batch(rows, batch, batch_size)
-    batched_uids_rows = get_batch(uids_rows, batch, batch_size)
+    #batched_uids_rows = get_batch(uids_rows, batch, batch_size)
 
     #max_length_context = max(len(row[0]) for row in batched_rows )
     #max_length_response = max(len(row[1]) for row in batched_rows )
@@ -390,19 +390,19 @@ def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
 
 def load_Data(args):
     train = readFile(os.path.join(args.dataPath,"train.tsv"),'train')
-    train_uids = readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
+    train_uids = ''#readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
     #train_data = list(zip(train, train_uids))
     #random.shuffle(train_data)
     #random.shuffle(train)
     #train, train_uids = zip(*train_data)
     valid = readFile(os.path.join(args.dataPath,"valid.tsv"),'valid')
-    valid_uids = readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
+    valid_uids = ''#readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
     test = readFile(os.path.join(args.dataPath,"test.tsv"),'test')
-    test_uids = readUidsFile(os.path.join(args.dataPath,"test_uids.tsv"))
+    test_uids = ''#readUidsFile(os.path.join(args.dataPath,"test_uids.tsv"))
     #to build vocabulary.txt
     # dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
     # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
-    vocab = build_vocab(train + valid, args)
+    vocab = build_vocab(train, args)
 
     numberized_train = numberize(train, vocab, args.maxUttNum, args.maxUttLen)
     numberized_valid = numberize(valid, vocab, args.maxUttNum, args.maxUttLen)

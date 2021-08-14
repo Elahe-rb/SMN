@@ -43,12 +43,12 @@ print('hello SMN!!')
 train_rows, valid_rows, test_rows, vocab, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
 vocab_size = len(vocab)   #for padding
 
-with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
-    next(f)  #ignore the header line
-    reader = csv.reader(f)
-    utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
+# with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
+#     next(f)  #ignore the header line
+#     reader = csv.reader(f)
+#     utts_cluster_ids_complete = {rows[0]:rows[5] for rows in reader}
 
-
+utts_cluster_ids_complete = ''
 
 ############################ define model ############################################
 
