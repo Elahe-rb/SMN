@@ -35,7 +35,7 @@ class Encoder(nn.Module):
         self.rnn_type = rnn_type
         self.p_dropout = dropout
 
-        self.RNN = nn.GRU(self.emb_dim, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
+        self.RNN = nn.GRU(self.emb_h_size, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
         self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
 
         self.embedding = nn.Embedding(vocab_size, input_size, sparse=False, padding_idx=0)
