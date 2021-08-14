@@ -66,9 +66,9 @@ model = dual_encoder_smn.Encoder(
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(adam_beta1, adam_beta2))
-#loss_fn = torch.nn.BCELoss()  #binary cross entropy loss
-pos_weight = torch.FloatTensor([10 - 1]).to(device)
-loss_fn = torch.nn.BCEWithLogitsLoss(reduction='sum', pos_weight=pos_weight)
+loss_fn = torch.nn.BCELoss()  #binary cross entropy loss
+# pos_weight = torch.FloatTensor([10 - 1]).to(device)
+# loss_fn = torch.nn.BCEWithLogitsLoss(reduction='sum', pos_weight=pos_weight)
 
 loss_fn.to(device)
 
