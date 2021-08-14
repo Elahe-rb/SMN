@@ -92,15 +92,16 @@ class Encoder(nn.Module):
 
     def forward(self, contexts_features, responses_features):  #dim:b*seq*num_of_features (0:word_indx 1:df)
         #print("hello, in dual encoder in top_network dir!!")
-        contexts = contexts_features[:, :, 0].long()   #dim: b*seq
-        responses = responses_features[:, :, 0].long()
-        c_idf = contexts_features[:, :, 1]    #dim: b*seq
-        r_idf = responses_features[:, :, 1]
-        c_tf = contexts_features[:, :, 2]
-        r_tf = responses_features[:, :, 2]
-        c_tf_idf = torch.mul(c_idf,c_tf)   #element wise multiplication dim: b*seq <== a*b
-        r_tf_idf = torch.mul(r_idf, r_tf)  # element wise multiplication dim: b*seq <== a*b
-        results = self.att_on_embedding(contexts,responses, c_tf_idf, r_tf_idf)
+        # contexts = contexts_features[:, :, 0].long()   #dim: b*seq
+        # responses = responses_features[:, :, 0].long()
+        # c_idf = contexts_features[:, :, 1]    #dim: b*seq
+        # r_idf = responses_features[:, :, 1]
+        # c_tf = contexts_features[:, :, 2]
+        # r_tf = responses_features[:, :, 2]
+        # c_tf_idf = torch.mul(c_idf,c_tf)   #element wise multiplication dim: b*seq <== a*b
+        # r_tf_idf = torch.mul(r_idf, r_tf)  # element wise multiplication dim: b*seq <== a*b
+        # results = self.att_on_embedding(contexts,responses, c_tf_idf, r_tf_idf)
+        results = self.att_on_embedding(contexts_features, responses_features, '', '')
         #results = self.dmn_prf(contexts,responses, c_tf_idf, r_tf_idf)
 
         return results
@@ -115,8 +116,10 @@ class Encoder(nn.Module):
         output = weighted_average.transpose(1, 2)  # 512*1*300
         return output  # dim: b * 1 * hidden
 
-    def att_on_embedding(self, contexts, responses, c_tf_idf, r_tf_idf): #dim context:b*seq  response:b*seq
+    def att_on_embedding(self, utterances, responses, c_tf_idf, r_tf_idf): #dim context:b*seq  response:b*seq
 
+
+        contexts = utterances.view(utterances.size(0),-1)
         contexts_emb = self.embedding(contexts)     #dim: c
         responses_emb = self.embedding(responses)
 

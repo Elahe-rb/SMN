@@ -11,7 +11,7 @@ import preprocess_data_smn
 import train_smn
 import evaluate_smn
 import smn
-import dual_encoder
+import dual_encoder_smn
 
 #########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -25,7 +25,7 @@ def set_seeds():
     random.seed(0)
 
 set_seeds()
-#
+
 def define_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-dataPath', default=data_file_path)
@@ -52,7 +52,7 @@ with open(os.path.join(args.dataPath,"clustered_completegraph.csv")) as f:
 
 ############################ define model ############################################
 
-model = dual_encoder.DualEncoder(
+model = dual_encoder_smn.Encoder(
   vocab=vocab,
   input_size=embed_dim, # embedding dim
   hidden_size=hidden_size, # rnn dim
