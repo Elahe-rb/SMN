@@ -284,11 +284,11 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
 
         ## and also for response
         response_words = dialog[-1].split()
-        selected_words_in_response = response_words[:min(len(response_words), (max_utt_length*max_utt_num))]
+        selected_words_in_response = response_words[:min(len(response_words), (200))]
         selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
-        if (len(selected_response) < (max_utt_length*max_utt_num)):  # padding
-            selected_response += [0] * ((max_utt_length*max_utt_num) - len(selected_response))  # post padding
-        if len(selected_response) != (max_utt_length*max_utt_num):
+        if (len(selected_response) < (200)):  # padding
+            selected_response += [0] * ((200) - len(selected_response))  # post padding
+        if len(selected_response) != (200):
             print('errrrrorrr')
         selected_response[-1] = vocab.get('eot', 1)    #add eot end of each utterance
 
