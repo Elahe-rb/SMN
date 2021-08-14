@@ -17,12 +17,12 @@ min_freq = 8
 
 
 #data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog'
-data_file_path = '../../ubuntu-s-l-t'
+data_file_path = '../../data/MSDialog'
 
 save_model_name = 'saved_model.pth'
-train_name = 'train.csv' #'train.tsv'   .tsv is for msdialog dataset
-valid_name = 'valid.csv' #'valid.tsv'
-test_name = 'test.csv' #'test.tsv'
+train_name = 'train.tsv'   #.tsv is for msdialog dataset
+valid_name = 'valid.tsv'
+test_name = 'test.tsv'
 vocab_name = 'vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
 test_results_name = 'test_scores.txt'
 valid_results_name = 'valid_scores.txt'
