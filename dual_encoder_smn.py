@@ -35,6 +35,9 @@ class Encoder(nn.Module):
         self.rnn_type = rnn_type
         self.p_dropout = dropout
 
+        self.RNN = nn.GRU(self.emb_dim, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
+        self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
+
         self.embedding = nn.Embedding(vocab_size, input_size, sparse=False, padding_idx=0)
 
         if rnn_type == 'gru':
@@ -122,6 +125,18 @@ class Encoder(nn.Module):
         contexts = utterances.view(utterances.size(0),-1)
         contexts_emb = self.embedding(contexts)     #dim: c
         responses_emb = self.embedding(responses)
+
+        r = self.RNN(responses_emb)[0]
+        c = self.RNN(contexts_emb)[0]
+
+        r = r[:, -1, :]
+        c = c[:, -1, :]
+
+        # r = r[[torch.arange(0, r.shape[0]), r_len - 1]]
+        # c = c[[torch.arange(0, c.shape[0]), c_len - 1]]
+
+        o = self.final(c, r).squeeze()
+        return o
 
         context_os, context_hs = self.rnn(
             contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
