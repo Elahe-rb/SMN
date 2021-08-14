@@ -136,7 +136,7 @@ class Encoder(nn.Module):
         # c = c[[torch.arange(0, c.shape[0]), c_len - 1]]
 
         o = self.final(c, r).squeeze()
-        return o
+        return o.view(-1,1)
 
         context_os, context_hs = self.rnn(
             contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
