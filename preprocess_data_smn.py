@@ -402,7 +402,7 @@ def load_Data(args):
     #to build vocabulary.txt
     # dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
     # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
-    vocab = build_vocab(train, args)
+    vocab = build_vocab(train + valid, args)
 
     numberized_train = numberize(train, vocab, args.maxUttNum, args.maxUttLen)
     numberized_valid = numberize(valid, vocab, args.maxUttNum, args.maxUttLen)
