@@ -130,7 +130,7 @@ class Encoder(nn.Module):
             seq += [0]*(500-len(seq))
             sequential_context.append(seq)
 
-        sequential_context = torch.LongTensor(sequential_context)
+        sequential_context = torch.LongTensor(sequential_context).to(device)
         contexts_emb = self.embedding(sequential_context)     #dim: c
         responses_emb = self.embedding(responses)
 
