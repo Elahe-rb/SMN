@@ -210,7 +210,7 @@ def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
     print('#OOV:: {} / {} = {:.4f}'.format( (len(vocab)-not_oov),len(vocab), (len(vocab)-not_oov)/len(vocab)))
     return embeddings
 
-def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
+def numberize_1(inp, vocab, max_utt_num , max_utt_length, is_context):
     #max_len = max_utt_num * max_utt_length
     if is_context:
         nested_inp = inp.split('eot')[:-1]   #-1 is for ignoring the last one which is empty #change to eot for run in cuda and uncomment clean_data
@@ -259,26 +259,32 @@ def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
 
 #################################
 
-def numberize(data, vocab, max_utt_num , max_utt_length):
+def numberize_smn(data, vocab, max_utt_num , max_utt_length):
     max_len = max_utt_num * max_utt_length
     numberized_data = []
+
     for dialog in data:
+
+        # dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
+        label = dialog[0]
+        context = dialog[1:-1]
+        resonse = dialog[-1]
         numberized_row = []
 
-        #dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
-        selected_turns = dialog[-min(max_utt_num, len(dialog)-1):-1]   #=1 is for response and -1 is for first word which is label 0 or 1
+        selected_turns = context[-min(max_utt_num, len(context)):]   #=1 is for response and -1 is for first word which is label 0 or 1
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
         #selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
         #selected_context = [w for ut in selected_words_in_turns for w in ut]
 
+
         padded_nested_results = []
         PAD_SEQUENCE = [0] * max_utt_length
-        PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
+        #PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
             selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
+            selected_context[-1] = vocab.get('eot', 1)  # add eot end of each utterance
             if len(selected_context)<max_utt_length:  #padding
                 selected_context += [0] * (max_utt_length - len(selected_context))   #post padding
-            selected_context[-1] = vocab.get('eot', 1)    #add eot end of each utterance
             padded_nested_results.append(selected_context)
         if len(padded_nested_results)<max_utt_num:
             padded_nested_results += [PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))
@@ -288,11 +294,11 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
         response_words = dialog[-1].split()
         selected_words_in_response = response_words[:min(len(response_words), max_len)]
         selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
+        selected_response[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         if (len(selected_response) < max_len):  # padding
             selected_response += [0] * (max_len - len(selected_response))  # post padding
         if len(selected_response) != max_len:
             print('errrrrorrr')
-        selected_response[-1] = vocab.get('eot', 1)    #add eot end of each utterance
 
         numberized_row.append(dialog[0])
         numberized_row = numberized_row + padded_nested_results
@@ -301,12 +307,40 @@ def numberize(data, vocab, max_utt_num , max_utt_length):
 
     return numberized_data   #dim seq*(numOffeatures+1)  here is 2(0:word indx, 1:idf, 2:tf)
 
-#????????????????????????????????
-def process_predict_embed(response):
-    stemmer = SnowballStemmer("english")
-    response = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(response))))
-    response = numberize(response)
-    return response
+def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
+    max_len = max_utt_num * max_utt_length
+    numberized_data = []
+
+    for dialog in data:
+
+        # dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
+        label = dialog[0]
+        context = dialog[1:-1]
+        resonse = dialog[-1]
+        numberized_row = []
+
+        selected_turns = context[-min(max_utt_num, len(context)):]  # =1 is for response and -1 is for first word which is label 0 or 1
+        selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
+        # selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
+        selected_context = [w for ut in selected_words_in_turns for w in ut]
+        context_idx = list(map(lambda k: vocab.get(k, 1), selected_context))
+        if len(context_idx) < max_len:
+            padded_context_idx = [0] * (max_len - len(context_idx)) + context_idx    #first_padding
+
+        response_words = resonse.split()
+        selected_response = response_words[:min(len(response_words), max_len)]
+        response_idx = list(map(lambda k: vocab.get(k, 1), selected_response))  # [-max_length:]   # 1 is index of unkown words
+        if len(response_idx) < max_len:
+            padded_response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
+
+        numberized_row.append(label)
+        numberized_row = numberized_row + padded_context_idx
+        numberized_row.append(padded_response_idx)
+        numberized_data.append(numberized_row)
+
+    return numberized_data
+
+
 
 def process_train_data(rows, batch, batch_size, vocab, device, is_topNet, uids_rows, cluster_ids):
     count = 0
