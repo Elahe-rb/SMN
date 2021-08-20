@@ -210,7 +210,7 @@ def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
     print('#OOV:: {} / {} = {:.4f}'.format( (len(vocab)-not_oov),len(vocab), (len(vocab)-not_oov)/len(vocab)))
     return embeddings
 
-def numberize_1(inp, vocab, max_utt_num , max_utt_length, is_context):
+def numberize(inp, vocab, max_utt_num , max_utt_length, is_context):
     #max_len = max_utt_num * max_utt_length
     if is_context:
         nested_inp = inp.split('eot')[:-1]   #-1 is for ignoring the last one which is empty #change to eot for run in cuda and uncomment clean_data
@@ -440,7 +440,7 @@ def load_Data(args):
     # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
     vocab = build_vocab(train, args)
 
-    numberized_train = numberize(train, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_valid = numberize(valid, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_test = numberize(test, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_train = numberize_rnn(train, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_valid = numberize_rnn(valid, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
     return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
