@@ -123,7 +123,7 @@ class Encoder(nn.Module):
 
 
         #contexts = utterances.view(utterances.size(0),-1)   #dim context:b*seq    <===  b*max_turn*max_turn_length
-        contexts = utterances.unsqueeze()  # dim context:b*maxLen    <===  b*1*maxLen
+        contexts = torch.squeeze(utterances)  # dim context:b*maxLen    <===  b*1*maxLen
 
         contexts_emb = self.embedding(contexts)     #dim: c
         responses_emb = self.embedding(responses)
