@@ -19,7 +19,7 @@ dataset="UDC"
 
 
 #data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/ubuntu-s-l-t'#MSDialog'
-data_file_path = '../data/ubuntu-s-l-t'  # MSDialog'
+data_file_path = '../ubuntu-s-l-t'  # MSDialog'
 
 save_model_name = 'saved_model.pth'
 train_name = 'train.csv'   #.tsv is for msdialog dataset
