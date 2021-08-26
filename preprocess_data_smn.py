@@ -107,10 +107,15 @@ def clean_data(rows):
         normalized_rows.append(normalized_row)
     return normalized_rows
 
-def readFile(filepath, name):
+def readFile(args, name):
 
-    reader = csv.reader(open(filepath), delimiter="\t")
-    rows = list(reader)[0:]
+    if args.dataset == "UDC":
+        reader = csv.reader(open(os.path.join(args.dataPath,name+".csv")))
+        rows = list(reader)[1:]    #the first line is just column names
+    elif args.dataset == "MSDialog":
+        reader = csv.reader(open(os.path.join(args.dataPath,name+".tsv")), delimiter="\t")
+        rows = list(reader)[0:]
+
     print('#',name,'_samples::',len(rows))
     #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
@@ -189,7 +194,7 @@ def build_vocab_1(train_data, valid_data, vocab_path, trim):
     #         voc.addSentence(text[-1] + " eot ", False, True)  #for valid data it contains only ground response
     #         i += 1
     if trim:
-        voc.trim(8)
+        voc.trim(10)
 
     with open(vocab_path, 'w') as f:
         f.writelines("%s\n" % w for w in voc.unique_vocabs)
@@ -197,7 +202,7 @@ def build_vocab_1(train_data, valid_data, vocab_path, trim):
 
     return voc
 
-def load_glove_embeddings(vocab, filename='../glove.6B.200d.txt'):
+def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #filename='../glove.6B.200d.txt'):
     lines = open(filename).readlines()
     embeddings = {}
     not_oov = 0
@@ -316,7 +321,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         # dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
-        resonse = dialog[-1]
+        response = dialog[-1]
         numberized_row = []
 
         selected_turns = context[-min(max_utt_num, len(context)):]  # =1 is for response and -1 is for first word which is label 0 or 1
@@ -327,7 +332,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         if len(context_idx) < max_len:
             padded_context_idx = [0] * (max_len - len(context_idx)) + context_idx    #first_padding
 
-        response_words = resonse.split()
+        response_words = response.split()
         selected_response = response_words[:min(len(response_words), max_len)]
         response_idx = list(map(lambda k: vocab.get(k, 1), selected_response))  # [-max_length:]   # 1 is index of unkown words
         if len(response_idx) < max_len:
@@ -423,21 +428,63 @@ def process_valid_data(rows, batch, batch_size, vocab, max_utt_num, max_utt_leng
 
     return batched_cs, batched_rs   #b*10*seq*numF
 
+def convert_udc_valid_test_format_to_msdialog(data):
+    new_data = []
+    for row in data:
+        context = row[0]
+        response = row[1]
+        distractors = row[2:]
+
+        utterances = context.split('__eot__')  # if use clean data change __eot__ to eot
+        new_row = []
+        new_row.append('1')
+        new_row = new_row + utterances[:-1]  # -1 is for ignore the last one which is empty
+        new_row.append(response)
+        new_data.append(new_row)
+
+        for distractor in distractors:
+            new_row = []
+            new_row.append('0')
+            new_row = new_row + utterances[:-1]  # -1 is for ignore the last one which is empty
+            new_row.append(distractor)
+            new_data.append(new_row)
+    return new_data
+
+def convert_udc_format_to_msdialog(train,valid,test):
+
+    new_train = []
+    for row in train:
+        new_row = []
+        context, response, label = row
+        utterances = context.split('__eot__')   #if use clean data change __eot__ to eot
+        new_row.append(label)
+        new_row = new_row + utterances[:-1]   #-1 is for ignore the last one which is empty
+        new_row.append(response)
+        new_train.append(new_row)
+
+    new_valid = convert_udc_valid_test_format_to_msdialog(valid)
+    new_test = convert_udc_valid_test_format_to_msdialog(test)
+
+    return new_train, new_valid, new_test
+
 
 def load_Data(args):
-    train = readFile(os.path.join(args.dataPath,"train.tsv"),'train')
+    train = readFile(args,'train')
     train_uids = ''#readUidsFile(os.path.join(args.dataPath,"train_uids.tsv"))
-    #train_data = list(zip(train, train_uids))
-    #random.shuffle(train_data)
+    train_data = list(zip(train, train_uids))
+    random.shuffle(train)
     #random.shuffle(train)
     #train, train_uids = zip(*train_data)
-    valid = readFile(os.path.join(args.dataPath,"valid.tsv"),'valid')
+    valid = readFile(args,'valid')
     valid_uids = ''#readUidsFile(os.path.join(args.dataPath,"valid_uids.tsv"))
-    test = readFile(os.path.join(args.dataPath,"test.tsv"),'test')
+    test = readFile(args,'test')
     test_uids = ''#readUidsFile(os.path.join(args.dataPath,"test_uids.tsv"))
     #to build vocabulary.txt
     # dic = build_vocab(train , valid, os.path.join(args.dataPath,"vocabulary.txt"), trim = True)
     # vocab = load_vocab(os.path.join(args.dataPath,"vocabulary.txt"))
+    if args.dataset == "UDC":
+        train, valid, test = convert_udc_format_to_msdialog(train,valid,test)
+
     vocab = build_vocab(train, args)
 
     numberized_train = numberize_rnn(train, vocab, args.maxUttNum, args.maxUttLen)

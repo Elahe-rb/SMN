@@ -13,16 +13,18 @@ vocab_path = 'data/vocabulary.txt'  #in vocab file ro az vocab code dual encoder
 #### MSDialog
 IS_HIERARCHICAL = False
 clusterNumber = 6
-min_freq = 8
+min_freq = 10
+
+dataset="UDC"
 
 
-#data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/MSDialog'
-data_file_path = '../../data/MSDialog'
+#data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/ubuntu-s-l-t'#MSDialog'
+data_file_path = '../../data/ubuntu-s-l-t'  # MSDialog'
 
 save_model_name = 'saved_model.pth'
-train_name = 'train.tsv'   #.tsv is for msdialog dataset
-valid_name = 'valid.tsv'
-test_name = 'test.tsv'
+train_name = 'train.csv'   #.tsv is for msdialog dataset
+valid_name = 'valid.csv'
+test_name = 'test.csv'
 vocab_name = 'vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
 test_results_name = 'test_scores.txt'
 valid_results_name = 'valid_scores.txt'
