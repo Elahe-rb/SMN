@@ -87,10 +87,30 @@ class Voc:
 
 
 # Lowercase, trim, and remove non-letter characters
-def normalizeString(s,lemmatizer):
-    #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
-    #word_list = nltk.word_tokenize(s)
-    #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+# def normalizeString(s,lemmatizer):
+#     #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
+#     #word_list = nltk.word_tokenize(s)
+#     #s = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+#     s = s.lower().strip()
+#     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
+#     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
+#     s = re.sub(r"\s+", r" ", s).strip()
+#     return s
+#
+# def clean_data(rows):
+#     #tokenization lemma and stem     but stemer is not good at all!!  tried--> tri !!! but in lemma: tried-->try  what about pos?!
+#     normalized_rows = []
+#     stemmer = SnowballStemmer("english")
+#     lemmatizer = WordNetLemmatizer()
+#     for row in rows:
+#         normalized_row = [normalizeString(r, lemmatizer) for r in row]
+#         normalized_rows.append(normalized_row)
+#     return normalized_rows
+
+
+# Lowercase, trim, and remove non-letter characters
+def normalizeString(s, stemmer):
+    #s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(str))))
     s = s.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
@@ -98,14 +118,15 @@ def normalizeString(s,lemmatizer):
     return s
 
 def clean_data(rows):
-    #tokenization lemma and stem     but stemer is not good at all!!  tried--> tri !!! but in lemma: tried-->try  what about pos?!
+    #?? add tokenization lemma and stem
     normalized_rows = []
     stemmer = SnowballStemmer("english")
-    lemmatizer = WordNetLemmatizer()
     for row in rows:
-        normalized_row = [normalizeString(r, lemmatizer) for r in row]
+        normalized_row = [normalizeString(r, stemmer) for r in row]
         normalized_rows.append(normalized_row)
     return normalized_rows
+
+
 
 def readFile(args, name):
 
@@ -117,7 +138,7 @@ def readFile(args, name):
         rows = list(reader)[0:]
 
     print('#',name,'_samples::',len(rows))
-    #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
+    rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
