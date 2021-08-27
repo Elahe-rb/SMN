@@ -53,7 +53,7 @@ utts_cluster_ids_complete = ''
 
 ############################ define model ############################################
 
-model = dual_encoder_smn.Encoder(
+model = smn.SMN(
   vocab=vocab,
   input_size=embed_dim, # embedding dim
   hidden_size=hidden_size, # rnn dim

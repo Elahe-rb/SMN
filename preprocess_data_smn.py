@@ -294,7 +294,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         # dialog[1:] = [(utt+' eot') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
-        resonse = dialog[-1]
+        response = dialog[-1]
         numberized_row = []
 
         selected_turns = context[-min(max_utt_num, len(context)):]   #=1 is for response and -1 is for first word which is label 0 or 1
@@ -308,25 +308,25 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         #PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
             selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
-            selected_context[-1] = vocab.get('eot', 1)  # add eot end of each utterance
+            #selected_context[-1] = vocab.get('__eot__', 1)  # add eot end of each utterance
             if len(selected_context)<max_utt_length:  #padding
-                selected_context += [0] * (max_utt_length - len(selected_context))   #post padding
+                selected_context = [0] * (max_utt_length - len(selected_context)) + selected_context   #first padding
             padded_nested_results.append(selected_context)
         if len(padded_nested_results)<max_utt_num:
             padded_nested_results += [PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))
 
 
         ## and also for response
-        response_words = dialog[-1].split()
+        response_words = response.split()
         selected_words_in_response = response_words[:min(len(response_words), max_len)]
         selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
-        selected_response[-1] = vocab.get('eot', 1)  # add eot end of each utterance
+        #selected_response[-1] = vocab.get('__eot__', 1)  # add eot end of each utterance
         if (len(selected_response) < max_len):  # padding
-            selected_response += [0] * (max_len - len(selected_response))  # post padding
+            selected_response = [0] * (max_len - len(selected_response)) + selected_response # first padding
         if len(selected_response) != max_len:
             print('errrrrorrr')
 
-        numberized_row.append(dialog[0])
+        numberized_row.append(label)
         numberized_row = numberized_row + padded_nested_results
         numberized_row.append(selected_response)
         numberized_data.append(numberized_row)
@@ -508,7 +508,7 @@ def load_Data(args):
 
     vocab = build_vocab(train, args)
 
-    numberized_train = numberize_rnn(train, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_valid = numberize_rnn(valid, vocab, args.maxUttNum, args.maxUttLen)
-    numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_train = numberize_smn(train, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_valid = numberize_smn(valid, vocab, args.maxUttNum, args.maxUttLen)
+    numberized_test = numberize_smn(test, vocab, args.maxUttNum, args.maxUttLen)
     return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
