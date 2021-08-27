@@ -138,7 +138,7 @@ def readFile(args, name):
         rows = list(reader)[0:]
 
     print('#',name,'_samples::',len(rows))
-    rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
+    #rows = clean_data(rows)  #if uncomment change _eot_ to eot in numberize function
     return rows
 
 def readUidsFile(filepath):
