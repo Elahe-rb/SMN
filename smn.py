@@ -101,7 +101,7 @@ class SMN(nn.Module):
         for k in hh_f:
             nn.init.orthogonal_(k)
 
-        self.final_linear = nn.Linear(100, 1)
+        self.final_linear = nn.Linear(200, 1)
         final_linear_weight = (param.data for name, param in self.final_linear.named_parameters() if "weight" in name)
         for w in final_linear_weight:
             init.xavier_uniform_(w)
