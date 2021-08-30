@@ -80,7 +80,7 @@ class SMN(nn.Module):
 
         self.pool2d = nn.MaxPool2d((cnn_kernel_size, cnn_kernel_size), stride=(3, 3))
 
-        self.linear = nn.Linear(16 * 16 * 8, match_dim)
+        self.linear = nn.Linear(21248, match_dim)#(16 * 16 * 8, match_dim)
         linear_weight = (param.data for name, param in self.linear.named_parameters() if "weight" in name)
         for w in linear_weight:
             init.xavier_uniform_(w)
