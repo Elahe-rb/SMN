@@ -35,37 +35,30 @@ class SMN(nn.Module):
         self.rnn_type = rnn_type
         self.p_dropout = dropout
 
-        self.embedding = nn.Embedding(vocab_size, input_size, padding_idx=0)
+        self.embedding = nn.Embedding(vocab_size, self.emb_h_size, padding_idx=0)
 
-        M = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
-        init.normal_(M)
-        self.M = nn.Parameter(M, requires_grad=True)
+        M_1 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+        init.normal_(M_1)
+        self.M = nn.Parameter(M_1, requires_grad=True)
 
-        W = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
-        init.normal_(W)
-        self.W = nn.Parameter(W, requires_grad=True)
+        M_2 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+        init.normal_(M_2)
+        self.W = nn.Parameter(M_2, requires_grad=True)
 
-        M1 = torch.FloatTensor(6, 1).to(device)
-        init.normal_(M1)
-        self.M1 = nn.Parameter(M1, requires_grad=True)
-
-        M2 = torch.FloatTensor(6, 1).to(device)
-        init.normal_(M2)
-        self.M2 = nn.Parameter(M2, requires_grad=True)
 
         self.dropout_layer = nn.Dropout(self.p_dropout)
 
 
         ###########################################################################################################
-        self.utterance_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, dropout=0).to(device)
-        # ih_u = (param.data for name, param in self.utterance_GRU.named_parameters() if 'weight_ih' in name)
-        # hh_u = (param.data for name, param in self.utterance_GRU.named_parameters() if 'weight_hh' in name)
-        # for k in ih_u:
-        #     nn.init.orthogonal_(k)
-        # for k in hh_u:
-        #     nn.init.orthogonal_(k)
-        # 用于response的GRU
-        self.response_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, dropout=0).to(device)
+        self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, dropout=0).to(device)
+        ih_u = (param.data for name, param in self.sentence_GRU.named_parameters() if 'weight_ih' in name)
+        hh_u = (param.data for name, param in self.sentence_GRU.named_parameters() if 'weight_hh' in name)
+        for k in ih_u:
+            nn.init.orthogonal_(k)
+        for k in hh_u:
+            nn.init.orthogonal_(k)
+        #用于response的GRU
+        #self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, dropout=0).to(device)
         # ih_r = (param.data for name, param in self.response_GRU.named_parameters() if 'weight_ih' in name)
         # hh_r = (param.data for name, param in self.response_GRU.named_parameters() if 'weight_hh' in name)
         # for k in ih_r:
@@ -73,14 +66,21 @@ class SMN(nn.Module):
         # for k in hh_r:
         #     nn.init.orthogonal_(k)
 
-        self.conv2d = nn.Conv2d(2, 8, kernel_size=(3, 3))
+        #values are based on SMN paper
+        cnn_out_channels = 8
+        cnn_kernel_size = 3
+        cnn_padding = 0
+        #cnn_out_dim = cnn_out_channels * ((config.max_sent + 2 * cnn_padding - (cnn_kernel_size - 1)) // cnn_kernel_size) ** 2
+        match_dim = 50
+
+        self.conv2d = nn.Conv2d(2, cnn_out_channels, kernel_size=(cnn_kernel_size, cnn_kernel_size))
         conv2d_weight = (param.data for name, param in self.conv2d.named_parameters() if "weight" in name)
         for w in conv2d_weight:
             init.kaiming_normal_(w)
 
-        self.pool2d = nn.MaxPool2d((3, 3), stride=(3, 3))
+        self.pool2d = nn.MaxPool2d((cnn_kernel_size, cnn_kernel_size), stride=(3, 3))
 
-        self.linear = nn.Linear(16 * 16 * 8, 50)
+        self.linear = nn.Linear(16 * 16 * 8, match_dim)
         linear_weight = (param.data for name, param in self.linear.named_parameters() if "weight" in name)
         for w in linear_weight:
             init.xavier_uniform_(w)
@@ -93,7 +93,7 @@ class SMN(nn.Module):
         init.xavier_uniform_(self.Bmatrix)
         self.Bmatrix = self.Bmatrix.to(device)
 
-        self.final_GRU = nn.GRU(50, self.rnn_h_size, bidirectional=False, batch_first=True)
+        self.final_GRU = nn.GRU(match_dim, self.rnn_h_size, bidirectional=False, batch_first=True)
         ih_f = (param.data for name, param in self.final_GRU.named_parameters() if 'weight_ih' in name)
         hh_f = (param.data for name, param in self.final_GRU.named_parameters() if 'weight_hh' in name)
         for k in ih_f:
@@ -110,15 +110,10 @@ class SMN(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        init.uniform_(self.utterance_GRU.weight_ih_l0, a=-0.01, b=0.01)
-        init.orthogonal_(self.utterance_GRU.weight_hh_l0)
-        self.utterance_GRU.weight_ih_l0.requires_grad = True
-        self.utterance_GRU.weight_hh_l0.requires_grad = True
-
-        init.uniform_(self.response_GRU.weight_ih_l0, a=-0.01, b=0.01)
-        init.orthogonal_(self.response_GRU.weight_hh_l0)
-        self.response_GRU.weight_ih_l0.requires_grad = True
-        self.response_GRU.weight_hh_l0.requires_grad = True
+        init.uniform_(self.sentence_GRU.weight_ih_l0, a=-0.01, b=0.01)
+        init.orthogonal_(self.sentence_GRU.weight_hh_l0)
+        self.sentence_GRU.weight_ih_l0.requires_grad = True
+        self.sentence_GRU.weight_hh_l0.requires_grad = True
 
         glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab)
 
@@ -138,25 +133,25 @@ class SMN(nn.Module):
         #uttereance: (batch_size,10(uttNum),50(uttlength))-->(batch_size,10,50,200)
         #response:(batch_size,50)-->(batch_size,50,200)
         all_utterance_embeddings = self.embedding(utterance)
-        response_embeddings = self.embedding(response)
-
         # tensorflow:(batch_size,10,50,200)-->分解-->10个array(batch_size,50,200)
         # pytorch:(batch_size,10,50,200)-->(10,batch_size,50,200)
         all_utterance_embeddings = all_utterance_embeddings.permute(1, 0, 2, 3)
 
+        response_embeddings = self.embedding(response)
+
         # 先处理response的gru
-        response_GRU_embeddings, _ = self.response_GRU(response_embeddings)
+        response_GRU_embeddings, _ = self.sentence_GRU(response_embeddings)
         response_embeddings = response_embeddings.permute(0, 2, 1)
         response_GRU_embeddings = response_GRU_embeddings.permute(0, 2, 1)
         matching_vectors = []
 
         for utterance_embeddings in all_utterance_embeddings:
-            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Bmatrix])
+            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Amatrix])
             matrix1 = torch.matmul(matrix1, response_embeddings)
             #matrix1 = torch.matmul(utterance_embeddings, response_embeddings)  # batch*utlen*utlen<-- batch*uttlength*embdim   , batch*embdim*uttlength
 
-            utterance_GRU_embeddings, _ = self.utterance_GRU(utterance_embeddings)
-            matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Amatrix])
+            utterance_GRU_embeddings, _ = self.sentence_GRU(utterance_embeddings)
+            matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Bmatrix])
             matrix2 = torch.matmul(matrix2, response_GRU_embeddings)
 
             matrix = torch.stack([matrix1, matrix2], dim=1)

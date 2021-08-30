@@ -17,7 +17,7 @@ kernel_num = 8
 dropout_rate = 0.3
 #vocabulary_size = 95154  # vocab size :based on existing tensorflow code for this paper
 max_utterance_length = 50
-max_conv_utt_num = 5   # the number of utterances in each conversation; if<10 padd it with zero else the most 10 recent utterance is kept
+max_conv_utt_num = 10   # the number of utterances in each conversation; if<10 padd it with zero else the most 10 recent utterance is kept
 
 
 #MsDialog
