@@ -1,22 +1,27 @@
 import torch
+from tqdm import tqdm
 import math
-import preprocess_data_smn
-
 #train for each epoch
-def train(model, loss_fn, optimizer, rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_utt_length, device, uids_rows, cluster_ids):
+def train(model, loss_fn, optimizer, train_data_loader, batch_size, epoch, num_epochs, vocab, device, uids_rows):
 
+    print('start training ...')
     # Turn on training mode which enables dropout.
     model.train()
     total_loss = 0
     total_acc = 0
     losses = []
 
-    num_iters = math.ceil(len(rows) / batch_size)
-    log_interval = math.ceil(num_iters / 5)
+    batch = 0
+    num_batches = len(train_data_loader)    #number of iteration
+    log_interval = math.ceil(num_batches/5)
 
-    for batch in range(num_iters):
-        cs, rs, ys = preprocess_data_smn.process_train_data(rows, batch, batch_size, vocab, device, False, uids_rows, cluster_ids)
+    progress_bar = tqdm(train_data_loader)
+    for cs, rs, ys in progress_bar:
+        # TODO:: check this!
+        #cs.to(device)
+        #rs.to(device)
 
+        # ToDo:: check this!
         optimizer.zero_grad()
 
         output = model(cs,rs)
@@ -24,22 +29,29 @@ def train(model, loss_fn, optimizer, rows, batch_size, epoch, num_epochs, vocab,
 
         losses.append(loss.item)
         total_loss += loss.item() * ys.size(0)
-        pred = output >= 0.5
-        num_correct = (pred == ys.byte()).sum().item()
-        total_acc += num_correct
 
+        # ToDo:: also test this one
+        #with torch.no_grad():
+            #acc = ((output > 0).long() == ys.long()).sum().item()
+
+        with torch.no_grad():
+            pred = output >= 0.5
+            num_correct = (pred == ys.byte()).sum().item()
+            total_acc += num_correct
 
         loss.backward()
         optimizer.step()
 
-        description = 'Train: [{}/{}][{}/{}] curr loss: {:.3f}, Loss: {:.3f}, Acc: {:.3f}'.format(
+        description = 'Train::: epoch[{}/{}] batch[{}/{}] curr loss: {:.3f}, Loss: {:.3f}, Acc: {:.3f}'.format(
             epoch + 1, num_epochs,
-            batch + 1, num_iters,
+            batch + 1, num_batches,
             loss.item(),
             total_loss / (batch_size * batch + output.size(0)),
             total_acc / (batch_size * batch + output.size(0)))
         if batch % log_interval == 0:
             print(description)
+        batch += 1
 
     return model, losses
+
 
