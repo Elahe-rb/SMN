@@ -51,7 +51,7 @@ print('HELLO!!')
 print('Loading dataset ...')
 train_rows, valid_rows, test_rows, vocab, train_uids_rows, valid_uids_rows, test_uids_rows = preprocess_data_smn.load_Data(args)
 print('building dataLoaders ...')
-train_data_loader, valid_data_loader, test_data_loader = preprocess_data_smn.get_data_loaders(train_rows, valid_rows, test_rows, args)
+train_data_loader, valid_data_loader, test_data_loader = preprocess_data_smn.get_data_loaders(train_rows, valid_rows, test_rows, args, device)
 vocab_size = len(vocab)
 
 ############################ define model ############################################

@@ -119,7 +119,7 @@ from torch.utils.data import DataLoader, TensorDataset
 #
 #     return voc
 
-def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #filename='../glove.6B.200d.txt'):  ut server:: filename='../../data/glove.6B.200d.txt')
+def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #filename='../glove.6B.200d.txt'):  ut server and colab: : filename='../../data/glove.6B.200d.txt')
     print('load glove embedding ...')
     lines = open(filename).readlines()
     embeddings = {}
@@ -133,7 +133,7 @@ def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #fil
     print('#OOV:: {} / {} = {:.4f}'.format( (len(vocab)-not_oov),len(vocab), (len(vocab)-not_oov)/len(vocab)))
     return embeddings
 
-def process_data(rows):
+def process_data(rows, device):
 
     count = 0
     cs = []
@@ -154,18 +154,18 @@ def process_data(rows):
         ys.append(torch.FloatTensor([label]))
         contexts.append(context)
 
-    cs = torch.stack(cs, 0)  #dim: batchsize * max-utt-num * max_utt-length if IS_SMN else batchsize * max-seq_len
-    rs = torch.stack(rs, 0)  #dim: batchsize * max_seq_len
-    ys = torch.stack(ys, 0)  #dim: batchsize * 1
+    cs = torch.stack(cs, 0).to(device)  #dim: batchsize * max-utt-num * max_utt-length if IS_SMN else batchsize * max-seq_len
+    rs = torch.stack(rs, 0).to(device)  #dim: batchsize * max_seq_len
+    ys = torch.stack(ys, 0).to(device)  #dim: batchsize * 1
 
     ds = TensorDataset(cs, rs, ys)
     return ds              #element type: torch.int64
 
-def get_data_loaders(train_rows, valid_rows, test_rows, args):
+def get_data_loaders(train_rows, valid_rows, test_rows, args, device):
 
-    train_data_loader = DataLoader(process_data(train_rows), batch_size=args.batchSize, shuffle=True)
-    valid_data_loader = DataLoader(process_data(valid_rows), batch_size=args.batchSize, shuffle=False)
-    test_data_loader = DataLoader(process_data(test_rows), batch_size=args.batchSize, shuffle=False)
+    train_data_loader = DataLoader(process_data(train_rows, device), batch_size=args.batchSize, shuffle=True)
+    valid_data_loader = DataLoader(process_data(valid_rows, device), batch_size=args.batchSize, shuffle=False)
+    test_data_loader = DataLoader(process_data(test_rows, device), batch_size=args.batchSize, shuffle=False)
 
     return train_data_loader, valid_data_loader, test_data_loader
 #########################################################################################################################
