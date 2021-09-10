@@ -171,8 +171,8 @@ def process_data(rows, batch, batch_size, device):
 def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 
     #ToDo: check this!
-    #max_len = max_utt_num * max_utt_length
-    max_len = max_utt_length
+    max_len = max_utt_num * max_utt_length
+    #max_len = max_utt_length
 
     numberized_data = []
 
