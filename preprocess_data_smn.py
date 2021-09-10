@@ -191,6 +191,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
     max_len = max_utt_num * max_utt_length
     numberized_data = []
+
     for dialog in data:
         dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
