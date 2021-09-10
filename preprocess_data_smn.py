@@ -190,7 +190,8 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 
 def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
     max_len = max_utt_num * max_utt_length
-    numberized_data = []
+    numberized_data = torch.zeros(len(data))
+    i = 0
 
     for dialog in data:
         dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
@@ -217,7 +218,8 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         numberized_row.append(label)
         numberized_row = numberized_row + padded_context_idx
         numberized_row.append(padded_response_idx)
-        numberized_data.append(numberized_row)
+        #numberized_data.append(numberized_row)
+        numberized_data[i] = numberized_row
 
     return numberized_data
 
