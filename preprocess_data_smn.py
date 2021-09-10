@@ -169,7 +169,11 @@ def process_data(rows, batch, batch_size, device):
 #########################################################################################################################
 
 def numberize_smn(data, vocab, max_utt_num , max_utt_length):
-    max_len = max_utt_num * max_utt_length
+
+    #ToDo: check this!
+    #max_len = max_utt_num * max_utt_length
+    max_len = max_utt_length
+
     numberized_data = []
 
     for dialog in data:
@@ -191,11 +195,11 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         #PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
             selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
-            if len(selected_context)<max_utt_length:  #padding
+            if len(selected_context) < max_utt_length:  #padding
                 selected_context = [0] * (max_utt_length - len(selected_context)) + selected_context   #first padding
             padded_nested_results.append(selected_context)
-        if len(padded_nested_results)<max_utt_num:
-            padded_nested_results =  ([PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))) + padded_nested_results
+        if len(padded_nested_results) < max_utt_num:
+            padded_nested_results = ([PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))) + padded_nested_results
 
 
         ## and also for response
