@@ -145,13 +145,13 @@ def process_data(rows, batch, batch_size, device):
     batched_rows = get_batch(rows, batch, batch_size)
 
     for row in batched_rows:
-        label = int(row[0])
+        label = row[0]
         context = row[1:-1]
         response = row[-1]
 
-        cs.append(torch.FloatTensor(context))
-        rs.append(torch.FloatTensor(response))
-        ys.append(torch.FloatTensor([label]))
+        cs.append(torch.LongTensor(context))
+        rs.append(torch.LongTensor(response))
+        ys.append(torch.FloatTensor([int(label)]))
 
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
     rs = torch.stack(rs, 0).to(device)
@@ -207,7 +207,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         if len(selected_response) != max_len:
             print('errrrrorrr')
 
-        numberized_row.append([label])
+        numberized_row.append(label)
         numberized_row = numberized_row + padded_nested_results
         numberized_row.append(selected_response)
         numberized_data.append(numberized_row)
@@ -241,7 +241,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         if len(response_idx) < max_len:
             padded_response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
 
-        numberized_row.append([label])
+        numberized_row.append(label)
         numberized_row = numberized_row + padded_context_idx
         numberized_row.append(padded_response_idx)
         numberized_data.append(numberized_row)
@@ -397,4 +397,4 @@ def load_Data(args):
         numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
 
     #calss list:[str,list,list]
-    return np.array(numberized_train), np.array(numberized_valid), np.asarray(numberized_test), vocab, train_uids, valid_uids, test_uids
+    return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
