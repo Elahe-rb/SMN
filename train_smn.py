@@ -5,7 +5,7 @@ import random
 import preprocess_data_smn
 
 #train for each epoch
-def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, vocab, device, uids_rows):
+def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, vocab, device, uids_rows, args):
 
     print('start training ...')
     random.shuffle(train_rows)
@@ -25,7 +25,7 @@ def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, 
         #rs.to(device)
 
     for batch in range(num_batches):
-        cs, rs, ys = preprocess_data_smn.process_data(train_rows, batch, batch_size, device)
+        cs, rs, ys = preprocess_data_smn.process_data(train_rows, batch, batch_size, vocab, args, device)
 
         # ToDo:: check this!
         optimizer.zero_grad()

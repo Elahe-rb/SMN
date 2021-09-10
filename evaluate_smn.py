@@ -3,7 +3,7 @@ import math
 import preprocess_data_smn
 from tqdm import tqdm
 
-def evaluate(model,rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_utt_length, device, uids_rows):
+def evaluate(model,rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_utt_length, device, uids_rows, args):
 
     #eval mode to set dropout to zero
     model.eval()
@@ -18,10 +18,10 @@ def evaluate(model,rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_
         #cs.to(device)
         #rs.to(device)
     num_batches = math.ceil(len(rows) / batch_size)  # number of iteration
-    log_interval = math.ceil(num_batches / 5)
+    #log_interval = math.ceil(num_batches / 5)
 
     for batch in range(num_batches):
-        cs, rs, ys = preprocess_data_smn.process_data(rows, batch, batch_size, device)
+        cs, rs, ys = preprocess_data_smn.process_data(rows, batch, batch_size, vocab, args, device)
 
         for j in range(int(len(cs) / 10)):  # for each context in batch with its ten candidate responses
             sidx = j * 10

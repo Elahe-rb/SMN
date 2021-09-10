@@ -137,37 +137,7 @@ def get_batch(rows,batch,batch_size):
     start = batch * batch_size
     return rows[start: start+batch_size]
 
-def process_data(rows, batch, batch_size, device):
-
-    cs = []
-    rs = []
-    ys = []
-    batched_rows = get_batch(rows, batch, batch_size)
-
-    for row in batched_rows:
-        label = row[0]
-        context = row[1:-1]
-        response = row[-1]
-
-        cs.append(torch.LongTensor(context))
-        rs.append(torch.LongTensor(response))
-        ys.append(torch.FloatTensor([int(label)]))
-
-    cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
-    rs = torch.stack(rs, 0).to(device)
-    ys = torch.stack(ys, 0).to(device)
-
-    return cs, rs, ys
-
-# def get_data_loaders(train_rows, valid_rows, test_rows, args, device):
-#
-#     train_data_loader = DataLoader(process_data(train_rows, device), batch_size=args.batchSize, shuffle=True)
-#     valid_data_loader = DataLoader(process_data(valid_rows, device), batch_size=args.batchSize, shuffle=False)
-#     test_data_loader = DataLoader(process_data(test_rows, device), batch_size=args.batchSize, shuffle=False)
-
-    return train_data_loader, valid_data_loader, test_data_loader
-#########################################################################################################################
-
+####################################################################################################
 def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 
     #ToDo: check this!
@@ -221,10 +191,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
     max_len = max_utt_num * max_utt_length
     numberized_data = []
-    a = 0
     for dialog in data:
-        print(a)
-        a+=1
         dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
@@ -253,6 +220,40 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
 
     return numberized_data
 
+def process_data(rows, batch, batch_size, vocab, args, device):
+
+    cs = []
+    rs = []
+    ys = []
+    batched_rows = get_batch(rows, batch, batch_size)
+    if args.isSMN:
+        numberized_batched_rows = numberize_smn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
+    else:
+        numberized_batched_rows = numberize_rnn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
+    for row in numberized_batched_rows:
+
+        label = row[0]
+        context = row[1:-1]
+        response = row[-1]
+
+        cs.append(torch.LongTensor(context))
+        rs.append(torch.LongTensor(response))
+        ys.append(torch.FloatTensor([int(label)]))
+
+    cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
+    rs = torch.stack(rs, 0).to(device)
+    ys = torch.stack(ys, 0).to(device)
+
+    return cs, rs, ys
+
+# def get_data_loaders(train_rows, valid_rows, test_rows, args, device):
+#
+#     train_data_loader = DataLoader(process_data(train_rows, device), batch_size=args.batchSize, shuffle=True)
+#     valid_data_loader = DataLoader(process_data(valid_rows, device), batch_size=args.batchSize, shuffle=False)
+#     test_data_loader = DataLoader(process_data(test_rows, device), batch_size=args.batchSize, shuffle=False)
+
+#    return train_data_loader, valid_data_loader, test_data_loader
+#########################################################################################################################
 
 def build_vocab(data,args):
     text = []
@@ -388,18 +389,18 @@ def load_Data(args):
     print('building vocabulary ...')
     vocab = build_vocab(train, args)
     print(f'vocabulary build with size: {len(vocab)}')
+    return train, valid, test, vocab, train_uids, valid_uids, test_uids
 
-
-    print('data numberization ...')
-    if args.isSMN:
-        numberized_train = numberize_smn(train, vocab, args.maxUttNum, args.maxUttLen)
-        numberized_valid = numberize_smn(valid, vocab, args.maxUttNum, args.maxUttLen)
-        numberized_test = numberize_smn(test, vocab, args.maxUttNum, args.maxUttLen)
-
-    else:
-        numberized_train = numberize_rnn(train, vocab, args.maxUttNum, args.maxUttLen)
-        numberized_valid = numberize_rnn(valid, vocab, args.maxUttNum, args.maxUttLen)
-        numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
-
-    #calss list:[str,list,list]
-    return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
+    # print('data numberization ...')
+    # if args.isSMN:
+    #     numberized_train = numberize_smn(train, vocab, args.maxUttNum, args.maxUttLen)
+    #     numberized_valid = numberize_smn(valid, vocab, args.maxUttNum, args.maxUttLen)
+    #     numberized_test = numberize_smn(test, vocab, args.maxUttNum, args.maxUttLen)
+    #
+    # else:
+    #     numberized_train = numberize_rnn(train, vocab, args.maxUttNum, args.maxUttLen)
+    #     numberized_valid = numberize_rnn(valid, vocab, args.maxUttNum, args.maxUttLen)
+    #     numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
+    #
+    # #calss list:[str,list,list]
+    # return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
