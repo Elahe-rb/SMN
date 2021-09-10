@@ -2,7 +2,7 @@ import torch
 import re
 import csv
 import nltk
-import random
+import numpy as np
 import os
 from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
@@ -133,39 +133,37 @@ def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #fil
     print('#OOV:: {} / {} = {:.4f}'.format( (len(vocab)-not_oov),len(vocab), (len(vocab)-not_oov)/len(vocab)))
     return embeddings
 
-def process_data(rows, device):
+def get_batch(rows,batch,batch_size):
+    start = batch * batch_size
+    return rows[start: start+batch_size]
 
-    count = 0
+def process_data(rows, batch, batch_size, device):
+
     cs = []
     rs = []
     ys = []
-    contexts = []
+    batched_rows = get_batch(rows, batch, batch_size)
 
-    for row in rows:
-
-        label = row[0]
+    for row in batched_rows:
+        label = int(row[0])
         context = row[1:-1]
         response = row[-1]
 
-        label = int(label)
-        count += 1
-        cs.append(torch.LongTensor(context))
-        rs.append(torch.LongTensor(response))
+        cs.append(torch.FloatTensor(context))
+        rs.append(torch.FloatTensor(response))
         ys.append(torch.FloatTensor([label]))
-        contexts.append(context)
 
-    cs = torch.stack(cs, 0).to(device)  #dim: batchsize * max-utt-num * max_utt-length if IS_SMN else batchsize * max-seq_len
-    rs = torch.stack(rs, 0).to(device)  #dim: batchsize * max_seq_len
-    ys = torch.stack(ys, 0).to(device)  #dim: batchsize * 1
+    cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
+    rs = torch.stack(rs, 0).to(device)
+    ys = torch.stack(ys, 0).to(device)
 
-    ds = TensorDataset(cs, rs, ys)
-    return ds              #element type: torch.int64
+    return cs, rs, ys
 
-def get_data_loaders(train_rows, valid_rows, test_rows, args, device):
-
-    train_data_loader = DataLoader(process_data(train_rows, device), batch_size=args.batchSize, shuffle=True)
-    valid_data_loader = DataLoader(process_data(valid_rows, device), batch_size=args.batchSize, shuffle=False)
-    test_data_loader = DataLoader(process_data(test_rows, device), batch_size=args.batchSize, shuffle=False)
+# def get_data_loaders(train_rows, valid_rows, test_rows, args, device):
+#
+#     train_data_loader = DataLoader(process_data(train_rows, device), batch_size=args.batchSize, shuffle=True)
+#     valid_data_loader = DataLoader(process_data(valid_rows, device), batch_size=args.batchSize, shuffle=False)
+#     test_data_loader = DataLoader(process_data(test_rows, device), batch_size=args.batchSize, shuffle=False)
 
     return train_data_loader, valid_data_loader, test_data_loader
 #########################################################################################################################
@@ -209,7 +207,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         if len(selected_response) != max_len:
             print('errrrrorrr')
 
-        numberized_row.append(label)
+        numberized_row.append([label])
         numberized_row = numberized_row + padded_nested_results
         numberized_row.append(selected_response)
         numberized_data.append(numberized_row)
@@ -243,7 +241,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         if len(response_idx) < max_len:
             padded_response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
 
-        numberized_row.append(label)
+        numberized_row.append([label])
         numberized_row = numberized_row + padded_context_idx
         numberized_row.append(padded_response_idx)
         numberized_data.append(numberized_row)
@@ -399,4 +397,4 @@ def load_Data(args):
         numberized_test = numberize_rnn(test, vocab, args.maxUttNum, args.maxUttLen)
 
     #calss list:[str,list,list]
-    return numberized_train, numberized_valid, numberized_test, vocab, train_uids, valid_uids, test_uids
+    return np.array(numberized_train), np.array(numberized_valid), np.asarray(numberized_test), vocab, train_uids, valid_uids, test_uids

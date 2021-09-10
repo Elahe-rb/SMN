@@ -3,7 +3,7 @@ import math
 import preprocess_data_smn
 from tqdm import tqdm
 
-def evaluate(model,data_loader, batch_size, epoch, num_epochs, vocab, max_utt_num, max_utt_length, device, uids_rows):
+def evaluate(model,rows, batch_size, epoch, num_epochs, vocab, max_utt_num, max_utt_length, device, uids_rows):
 
     #eval mode to set dropout to zero
     model.eval()
@@ -11,14 +11,18 @@ def evaluate(model,data_loader, batch_size, epoch, num_epochs, vocab, max_utt_nu
     acc = 0.0
     count = [0] * 10
     #i=1
-    # log_interval = 10
-    batch = 0
 
-    progress_bar = tqdm(data_loader)
-    for cs, rs, ys in progress_bar:
+    # progress_bar = tqdm(data_loader)
+    # for cs, rs, ys in progress_bar:
         # TODO:: check this!
         #cs.to(device)
         #rs.to(device)
+    num_batches = math.ceil(len(rows) / batch_size)  # number of iteration
+    log_interval = math.ceil(num_batches / 5)
+
+    for batch in range(num_batches):
+        cs, rs, ys = preprocess_data_smn.process_data(rows, batch, batch_size, device)
+
         for j in range(int(len(cs) / 10)):  # for each context in batch with its ten candidate responses
             sidx = j * 10
             each_context_result = model(cs[sidx:sidx + 10], rs[sidx:sidx + 10])
@@ -29,7 +33,7 @@ def evaluate(model,data_loader, batch_size, epoch, num_epochs, vocab, max_utt_nu
             if each_context_result[0] > 0.5:  # here acc is the number of tp+tn/total
                 acc += 1
             acc += sum(1 for val in each_context_result[1:] if val <= 0.5)
-        batch+=1
+        #batch+=1
         '''
         description = (
             'Valid: [{}/{}]  R1: {:.3f} R2: {:.3f} R5: {:.3f} MRR: {:.3f} Acc: {:.3f}'.format(

@@ -14,8 +14,8 @@ vocab_path = 'data/vocabulary.txt'  #in vocab file ro az vocab code dual encoder
 IS_HIERARCHICAL = False
 clusterNumber = 6
 
-#data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/ubuntu-s-l-t'#MSDialog'
-data_file_path = '../../ubuntu-s-l-t'  # MSDialog'     for colab:: #'../../ubuntu-s-l-t' for ut server:'../../data/ubuntu-s-l-t'
+data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/ubuntu-s-l-t'#MSDialog'
+#data_file_path = '../../ubuntu-s-l-t'  # MSDialog'     for colab:: #'../../ubuntu-s-l-t' for ut server:'../../data/ubuntu-s-l-t'
 
 save_model_name = 'saved_model.pth'
 train_name = 'train.csv'   #.tsv is for msdialog dataset

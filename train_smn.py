@@ -1,25 +1,31 @@
 import torch
 from tqdm import tqdm
 import math
+import random
+import preprocess_data_smn
+
 #train for each epoch
-def train(model, loss_fn, optimizer, train_data_loader, batch_size, epoch, num_epochs, vocab, device, uids_rows):
+def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, vocab, device, uids_rows):
 
     print('start training ...')
+    random.shuffle(train_rows)
     # Turn on training mode which enables dropout.
     model.train()
     total_loss = 0
     total_acc = 0
     losses = []
 
-    batch = 0
-    num_batches = len(train_data_loader)    #number of iteration
+    num_batches = math.ceil(len(train_rows) / batch_size)    #number of iteration
     log_interval = math.ceil(num_batches/5)
 
-    progress_bar = tqdm(train_data_loader)
-    for cs, rs, ys in progress_bar:
+    #progress_bar = tqdm(train_data_loader)
+    #for cs, rs, ys in progress_bar:
         # TODO:: check this!
         #cs.to(device)
         #rs.to(device)
+
+    for batch in range(num_batches):
+        cs, rs, ys = preprocess_data_smn.process_data(train_rows, batch, batch_size, device)
 
         # ToDo:: check this!
         optimizer.zero_grad()
