@@ -7,16 +7,16 @@ adam_beta2 = 0.999
 num_classes = 1
 
 DO_ClEAN = False
-IS_SMN = True
+IS_SMN = False
 min_freq = 10
 
 dataset="UDC"
-model_name = 'SMN'   #or Dual_GRU
+model_name = 'Dual_GRU' #'SMN'   #or Dual_GRU
 
 
 #udc params
 
-batch_size = 80#128#40#512#128#512
+batch_size = 128#128#40#512#128#512
 evaluate_batch_size = 500#100#500
 embed_dim = 200  # embedding dim: this is the input_size in rnn function
 hidden_size = 200  # rnn dim hidden states

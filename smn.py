@@ -131,30 +131,31 @@ class SMN(nn.Module):
             response:(self.batch_size, self.max_sentence_len)
         '''
         #uttereance: (batch_size,10(uttNum),50(uttlength))-->(batch_size,10,50,200)
-        #response:(batch_size,50)-->(batch_size,50,200)
         all_utterance_embeddings = self.embedding(utterance)
         # tensorflow:(batch_size,10,50,200)-->分解-->10个array(batch_size,50,200)
         # pytorch:(batch_size,10,50,200)-->(10,batch_size,50,200)
         all_utterance_embeddings = all_utterance_embeddings.permute(1, 0, 2, 3)
 
+        # response:(batch_size,50)-->(batch_size,50,200)
         response_embeddings = self.embedding(response)
 
-        # 先处理response的gru
+        # response_GRU_embeddings:(batch_size,50,embdsize)-->(batch_size,50,hiddensize)
         response_GRU_embeddings, _ = self.sentence_GRU(response_embeddings)
         response_embeddings = response_embeddings.permute(0, 2, 1)
         response_GRU_embeddings = response_GRU_embeddings.permute(0, 2, 1)
         matching_vectors = []
 
         for utterance_embeddings in all_utterance_embeddings:
-            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Amatrix])
-            matrix1 = torch.matmul(matrix1, response_embeddings)
+            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Amatrix]) #size:batchsize*50*200
+            matrix1 = torch.matmul(matrix1, response_embeddings)     # batchsize*50*50          <--- size:batchsize*50*200 ,  size:batchsize*200*50
             #matrix1 = torch.matmul(utterance_embeddings, response_embeddings)  # batch*utlen*utlen<-- batch*uttlength*embdim   , batch*embdim*uttlength
 
+            #b*50*200
             utterance_GRU_embeddings, _ = self.sentence_GRU(utterance_embeddings)
             matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Bmatrix])
-            matrix2 = torch.matmul(matrix2, response_GRU_embeddings)
+            matrix2 = torch.matmul(matrix2, response_GRU_embeddings) #matrix2:: batchsize*50*50
 
-            matrix = torch.stack([matrix1, matrix2], dim=1)
+            matrix = torch.stack([matrix1, matrix2], dim=1)  #torch.size(b*2*50*50)
             # matrix:(batch_size,channel,seq_len,embedding_size)
             conv_layer = self.conv2d(matrix)
             # add activate function
