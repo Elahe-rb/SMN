@@ -24,6 +24,7 @@ class Encoder(nn.Module):
             rnn_type,
             num_layers,
             dropout,
+            emb_dir
     ):
         super(Encoder, self).__init__()
         self.num_directions = 2 if bidirectional else 1
@@ -34,6 +35,7 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         self.p_dropout = dropout
+        self.emb_dir = emb_dir
 
         self.RNN = nn.GRU(self.emb_h_size, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
         self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
@@ -83,7 +85,7 @@ class Encoder(nn.Module):
         self.rnn.weight_ih_l0.requires_grad = True
         self.rnn.weight_hh_l0.requires_grad = True
 
-        glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab)
+        glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab, self.emb_dir)
 
         embedding_weights = torch.FloatTensor(self.vocab_size, self.emb_h_size)
         init.uniform_(embedding_weights, a=-0.25, b=0.25)

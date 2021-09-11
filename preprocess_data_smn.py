@@ -119,7 +119,7 @@ from torch.utils.data import DataLoader, TensorDataset
 #
 #     return voc
 
-def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #filename='../glove.6B.200d.txt'):  ut server and colab: : filename='../../data/glove.6B.200d.txt')
+def load_glove_embeddings(vocab, filename):
     print('load glove embedding ...')
     lines = open(filename).readlines()
     embeddings = {}
@@ -134,13 +134,14 @@ def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #fil
     return embeddings
 
 ####################################################################################################
-def numberize_smn(data, vocab, max_utt_num , max_utt_length):
+def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
 
     #ToDo: check this!
     #max_len = max_utt_num * max_utt_length
     max_len = max_utt_length
-
-    numberized_data = []
+    cs = []
+    rs = []
+    ys = []
 
     for dialog in data:
 
@@ -148,7 +149,6 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
-        numberized_row = []
 
         selected_turns = context[-min(max_utt_num, len(context)):]
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
@@ -156,33 +156,37 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
         # selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
         #selected_context = [w for ut in selected_words_in_turns for w in ut]
 
-        padded_nested_results = []
+        selected_nested_context_idx = []
         PAD_SEQUENCE = [0] * max_utt_length
         #PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
-            selected_context = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
-            if len(selected_context) < max_utt_length:  #padding
-                selected_context = [0] * (max_utt_length - len(selected_context)) + selected_context   #first padding
-            padded_nested_results.append(selected_context)
-        if len(padded_nested_results) < max_utt_num:
-            padded_nested_results = ([PAD_SEQUENCE] * (max_utt_num - len(padded_nested_results))) + padded_nested_results
+            context_idx = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
+            if len(context_idx) < max_utt_length:  #padding
+                context_idx = [0] * (max_utt_length - len(context_idx)) + context_idx   #first padding
+                selected_nested_context_idx.append(context_idx)
+        if len(selected_nested_context_idx) < max_utt_num:
+            selected_nested_context_idx = ([PAD_SEQUENCE] * (max_utt_num - len(selected_nested_context_idx))) + selected_nested_context_idx
 
 
         ## and also for response
         response_words = response.split()
-        selected_words_in_response = response_words[:min(len(response_words), max_len)]
-        selected_response = list(map(lambda k: vocab.get(k, 1), selected_words_in_response[:]))
-        if (len(selected_response) < max_len):  # padding
-            selected_response = [0] * (max_len - len(selected_response)) + selected_response # first padding
-        if len(selected_response) != max_len:
+        selected_response = response_words[:min(len(response_words), max_len)]
+        response_idx = list(map(lambda k: vocab.get(k, 1), selected_response[:]))
+        if (len(response_idx) < max_len):  # padding
+            response_idx = [0] * (max_len - len(response_idx)) + response_idx # first padding
+        if len(response_idx) != max_len:
             print('errrrrorrr')
 
-        numberized_row.append(label)
-        numberized_row = numberized_row + padded_nested_results
-        numberized_row.append(selected_response)
-        numberized_data.append(numberized_row)
+        cs.append(torch.LongTensor(selected_nested_context_idx))
+        rs.append(torch.LongTensor(response_idx))
+        ys.append(torch.FloatTensor([int(label)]))
 
-    return numberized_data
+    cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
+    rs = torch.stack(rs, 0).to(device)
+    ys = torch.stack(ys, 0).to(device)
+
+    return cs, rs, ys
+
 
 def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
     max_len = max_utt_num * max_utt_length
@@ -231,7 +235,7 @@ def process_data(rows, batch, batch_size, vocab, args, device):
     batched_rows = get_batch(rows, batch, batch_size)
 
     if args.isSMN:
-        cs = numberize_smn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
+        cs, rs, ys = numberize_smn(batched_rows, vocab, args.maxUttNum, args.maxUttLen, device)
     else:
         cs, rs, ys = numberize_rnn(batched_rows, vocab, args.maxUttNum, args.maxUttLen, device)
 

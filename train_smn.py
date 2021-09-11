@@ -56,7 +56,6 @@ def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, 
             total_acc / (batch_size * batch + output.size(0)))
         if batch % log_interval == 0:
             print(description)
-        batch += 1
 
     return model, losses
 

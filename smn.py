@@ -24,6 +24,7 @@ class SMN(nn.Module):
             rnn_type,
             num_layers,
             dropout,
+            emb_dir
     ):
         super(SMN, self).__init__()
         self.num_directions = 2 if bidirectional else 1
@@ -34,6 +35,8 @@ class SMN(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         self.p_dropout = dropout
+        self.emd_dir = emb_dir
+
 
         self.embedding = nn.Embedding(vocab_size, self.emb_h_size, padding_idx=0)
 
@@ -80,7 +83,7 @@ class SMN(nn.Module):
 
         self.pool2d = nn.MaxPool2d((cnn_kernel_size, cnn_kernel_size), stride=(3, 3))
 
-        self.linear = nn.Linear(21248, match_dim)#(16 * 16 * 8, match_dim)
+        self.linear = nn.Linear(2048, match_dim)#(16 * 16 * 8, match_dim)
         linear_weight = (param.data for name, param in self.linear.named_parameters() if "weight" in name)
         for w in linear_weight:
             init.xavier_uniform_(w)
@@ -115,7 +118,7 @@ class SMN(nn.Module):
         self.sentence_GRU.weight_ih_l0.requires_grad = True
         self.sentence_GRU.weight_hh_l0.requires_grad = True
 
-        glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab)
+        glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab, self.emd_dir)
 
         embedding_weights = torch.FloatTensor(self.vocab_size, self.emb_h_size)
         init.uniform_(embedding_weights, a=-0.25, b=0.25)

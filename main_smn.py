@@ -15,8 +15,8 @@ import dual_encoder_smn
 
 #########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = True
+#torch.backends.cudnn.deterministic = True
+#torch.backends.cudnn.benchmark = True
 
 
 def set_seeds(seed):
@@ -40,6 +40,7 @@ def define_args():
     parser.add_argument('-isSMN', default=IS_SMN)
     parser.add_argument('-modelName', default=model_name)
     parser.add_argument('-batchSize', default=batch_size)
+    parser.add_argument('-embDir', default=embedding_file_path)
 
     return parser
 
@@ -55,7 +56,7 @@ train_rows, valid_rows, test_rows, vocab, train_uids_rows, valid_uids_rows, test
 vocab_size = len(vocab)
 
 ############################ define model ############################################
-
+print(f'model name::  {args.modelName}')
 if args.modelName == 'SMN':
     model = smn.SMN(
         vocab=vocab,
@@ -65,7 +66,8 @@ if args.modelName == 'SMN':
         bidirectional=False,  # really should change!
         rnn_type='gru',
         num_layers=1,
-        dropout=dropout_rate
+        dropout=dropout_rate,
+        emb_dir=args.embDir
     )
 
 elif args.modelName == 'Dual_GRU':
@@ -77,7 +79,8 @@ elif args.modelName == 'Dual_GRU':
         bidirectional=False,  # really should change!
         rnn_type='gru',
         num_layers=1,
-        dropout=dropout_rate
+        dropout=dropout_rate,
+        emb_dir = args.embDir
     )
 model.to(device)
 

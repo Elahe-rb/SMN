@@ -15,12 +15,13 @@ IS_HIERARCHICAL = False
 clusterNumber = 6
 
 #data_file_path = '/Users/Apple/Desktop/phd/thesis/codes/python/deep/Hierarchical_network/data/ubuntu-s-l-t'#MSDialog'
-data_file_path = '../../ubuntu-s-l-t'  # MSDialog'     for colab:: #'../../ubuntu-s-l-t' for ut server:'../../data/ubuntu-s-l-t'   '../../data/MSDialog'
+data_file_path = '../../data/MSDialog'  # MSDialog'     for colab:: #'../../ubuntu-s-l-t' for ut server:'../../data/ubuntu-s-l-t'   '../../data/MSDialog'
+embedding_file_path = '../../data/glove.6B.200d.txt' #filename='../glove.6B.200d.txt'):  ut server and colab: : filename='../../data/glove.6B.200d.txt')
 
 save_model_name = 'saved_model.pth'
-train_name = 'train.csv'   #.tsv is for msdialog dataset
-valid_name = 'valid.csv'
-test_name = 'test.csv'
+train_name = 'train.tsv'   #.tsv is for msdialog dataset
+valid_name = 'valid.tsv'
+test_name = 'test.tsv'
 vocab_name = 'vocabulary.txt'  #in vocab file ro az vocab code dual encoder bardashtam chon be nazar miyad datasetesh ba in v2 yekiye . chack kon???
 test_results_name = 'test_scores.txt'
 valid_results_name = 'valid_scores.txt'
