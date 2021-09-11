@@ -195,7 +195,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
-        numberized_row = []
+        #numberized_row = []
 
         selected_turns = context[-min(max_utt_num, len(context)):]
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
@@ -204,16 +204,16 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
         selected_context = [w for ut in selected_words_in_turns for w in ut]
         context_idx = list(map(lambda k: vocab.get(k, 1), selected_context))
         if len(context_idx) < max_len:
-            padded_context_idx = [0] * (max_len - len(context_idx)) + context_idx    #first_padding
+            context_idx = [0] * (max_len - len(context_idx)) + context_idx    #first_padding
 
         response_words = response.split()
         selected_response = response_words[:min(len(response_words), max_len)]
         response_idx = list(map(lambda k: vocab.get(k, 1), selected_response))  # [-max_length:]   # 1 is index of unkown words
         if len(response_idx) < max_len:
-            padded_response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
+            response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
 
-        cs.append(torch.LongTensor(context))
-        rs.append(torch.LongTensor(response))
+        cs.append(torch.LongTensor(context_idx))
+        rs.append(torch.LongTensor(response_idx))
         ys.append(torch.FloatTensor([int(label)]))
 
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
