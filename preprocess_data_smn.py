@@ -133,10 +133,6 @@ def load_glove_embeddings(vocab, filename='../../data/glove.6B.200d.txt'):  #fil
     print('#OOV:: {} / {} = {:.4f}'.format( (len(vocab)-not_oov),len(vocab), (len(vocab)-not_oov)/len(vocab)))
     return embeddings
 
-def get_batch(rows,batch,batch_size):
-    start = batch * batch_size
-    return rows[start: start+batch_size]
-
 ####################################################################################################
 def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 
@@ -188,10 +184,11 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length):
 
     return numberized_data
 
-def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
+def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
     max_len = max_utt_num * max_utt_length
-    numberized_data = torch.zeros(len(data))
-    i = 0
+    cs = []
+    rs = []
+    ys = []
 
     for dialog in data:
         dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
@@ -215,30 +212,6 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length):
         if len(response_idx) < max_len:
             padded_response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
 
-        numberized_row.append(label)
-        numberized_row = numberized_row + padded_context_idx
-        numberized_row.append(padded_response_idx)
-        #numberized_data.append(numberized_row)
-        numberized_data[i] = numberized_row
-
-    return numberized_data
-
-def process_data(rows, batch, batch_size, vocab, args, device):
-
-    cs = []
-    rs = []
-    ys = []
-    batched_rows = get_batch(rows, batch, batch_size)
-    if args.isSMN:
-        numberized_batched_rows = numberize_smn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
-    else:
-        numberized_batched_rows = numberize_rnn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
-    for row in numberized_batched_rows:
-
-        label = row[0]
-        context = row[1:-1]
-        response = row[-1]
-
         cs.append(torch.LongTensor(context))
         rs.append(torch.LongTensor(response))
         ys.append(torch.FloatTensor([int(label)]))
@@ -246,6 +219,21 @@ def process_data(rows, batch, batch_size, vocab, args, device):
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
     rs = torch.stack(rs, 0).to(device)
     ys = torch.stack(ys, 0).to(device)
+
+    return cs, rs, ys
+
+def get_batch(rows,batch,batch_size):
+    start = batch * batch_size
+    return rows[start: start+batch_size]
+
+def process_data(rows, batch, batch_size, vocab, args, device):
+
+    batched_rows = get_batch(rows, batch, batch_size)
+
+    if args.isSMN:
+        cs = numberize_smn(batched_rows, vocab, args.maxUttNum, args.maxUttLen)
+    else:
+        cs, rs, ys = numberize_rnn(batched_rows, vocab, args.maxUttNum, args.maxUttLen, device)
 
     return cs, rs, ys
 
