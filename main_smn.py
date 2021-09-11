@@ -80,7 +80,7 @@ elif args.modelName == 'Dual_GRU':
         rnn_type='gru',
         num_layers=1,
         dropout=dropout_rate,
-        emb_dir = args.embDir
+        emb_dir=args.embDir
     )
 model.to(device)
 
