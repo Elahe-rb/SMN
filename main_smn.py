@@ -15,8 +15,8 @@ import dual_encoder_smn
 
 #########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#torch.backends.cudnn.deterministic = True
-#torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = True
 
 
 def set_seeds(seed):

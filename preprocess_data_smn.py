@@ -8,7 +8,6 @@ from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
-from torch.utils.data import DataLoader, TensorDataset
 #nltk.download('punkt')
 
 ######################################################################
