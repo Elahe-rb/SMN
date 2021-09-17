@@ -176,9 +176,9 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
         if len(response_idx) != max_len:
             print('errrrrorrr')
 
-        cs.append(torch.LongTensor(selected_nested_context_idx))
-        rs.append(torch.LongTensor(response_idx))
-        ys.append(torch.FloatTensor([int(label)]))
+        cs.append(torch.tensor(selected_nested_context_idx))
+        rs.append(torch.tensor(response_idx))
+        ys.append(torch.tensor([int(label)]))
 
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
     rs = torch.stack(rs, 0).to(device)

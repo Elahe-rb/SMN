@@ -40,6 +40,8 @@ class SMN(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, self.emb_h_size, padding_idx=0)
 
+        self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True,dropout=0).to(device)
+
         M_1 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
         init.normal_(M_1)
         self.M = nn.Parameter(M_1, requires_grad=True)
@@ -130,33 +132,37 @@ class SMN(nn.Module):
 
     def forward(self, utterance, response):
         '''
-            utterance:(self.batch_size, self.max_num_utterance, self.max_sentence_len)
-            response:(self.batch_size, self.max_sentence_len)
+            utterance:(self.batch_size, self.max_num_utterance, self.max_sequence_len)
+            response:(self.batch_size, self.max_sequence_len)
         '''
-        #uttereance: (batch_size,10(uttNum),50(uttlength))-->(batch_size,10,50,200)
-        all_utterance_embeddings = self.embedding(utterance)
-        # tensorflow:(batch_size,10,50,200)-->分解-->10个array(batch_size,50,200)
+
+        #uttereance: (batch_size,10(uttNum),50(uttlength))-->(batch_size,10,50,200(emb_dim))
+        all_utterances_embedding = self.embedding(utterance)
         # pytorch:(batch_size,10,50,200)-->(10,batch_size,50,200)
-        all_utterance_embeddings = all_utterance_embeddings.permute(1, 0, 2, 3)
+        all_utterances_embedding = all_utterances_embedding.permute(1, 0, 2, 3)
 
-        # response:(batch_size,50)-->(batch_size,50,200)
-        response_embeddings = self.embedding(response)
+        # response:(batch_size,50)-->(batch_size,50,200(emb_dim))
+        response_embedding = self.embedding(response)
 
-        # response_GRU_embeddings:(batch_size,50,embdsize)-->(batch_size,50,hiddensize)
-        response_GRU_embeddings, _ = self.sentence_GRU(response_embeddings)
-        response_embeddings = response_embeddings.permute(0, 2, 1)
-        response_GRU_embeddings = response_GRU_embeddings.permute(0, 2, 1)
+        # response_GRU_embedding:(batch_size,50,embdsize)-->(batch_size,50,hiddensize)
+        response_GRU_embedding, _ = self.sentence_GRU(response_embedding)
+        # (batch_size,emb_dim, seq_length) <--
+        response_embedding = response_embedding.permute(0, 2, 1)
+        # (batch_size,hidden_size, seq_length) <--
+        response_GRU_embedding = response_GRU_embedding.permute(0, 2, 1)
         matching_vectors = []
 
-        for utterance_embeddings in all_utterance_embeddings:
-            matrix1 = torch.einsum('aij,jk->aik', [utterance_embeddings, self.Amatrix]) #size:batchsize*50*200
-            matrix1 = torch.matmul(matrix1, response_embeddings)     # batchsize*50*50          <--- size:batchsize*50*200 ,  size:batchsize*200*50
+        # tensorflow:(batch_size,10,50,200)-->分解-->10个array(batch_size,50,200)
+
+        for utterance_embedding in all_utterances_embedding:
+            matrix1 = torch.einsum('aij,jk->aik', [utterance_embedding, self.Amatrix]) #size:b*s*emb  <<-- b*s*emb   , emb*emb
+            matrix1 = torch.matmul(matrix1, response_embedding)     # batchsize*50*50          <--- size:batchsize*50*200 ,  size:batchsize*200*50
             #matrix1 = torch.matmul(utterance_embeddings, response_embeddings)  # batch*utlen*utlen<-- batch*uttlength*embdim   , batch*embdim*uttlength
 
-            #b*50*200
-            utterance_GRU_embeddings, _ = self.sentence_GRU(utterance_embeddings)
-            matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Bmatrix])
-            matrix2 = torch.matmul(matrix2, response_GRU_embeddings) #matrix2:: batchsize*50*50
+            #b*50*hiddensize <-- b*50*emb
+            utterance_GRU_embedding, _ = self.sentence_GRU(utterance_embedding)
+            matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embedding, self.Bmatrix])   # batchsize*50*h <--  b*50*hiddensize , h*h
+            matrix2 = torch.matmul(matrix2, response_GRU_embedding) #matrix2:: batchsize*50*50  <-- batchsize*50*h  , (batch_size,hidden_size, 50)
 
             matrix = torch.stack([matrix1, matrix2], dim=1)  #torch.size(b*2*50*50)
             # matrix:(batch_size,channel,seq_len,embedding_size)

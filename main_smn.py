@@ -11,6 +11,7 @@ import preprocess_data_smn
 import train_smn
 import evaluate_smn
 import smn
+import smn_smn
 import dual_encoder_smn
 
 #########################  Device configuration ###################################
@@ -68,6 +69,11 @@ if args.modelName == 'SMN':
         num_layers=1,
         dropout=dropout_rate,
         emb_dir=args.embDir
+    )
+
+if args.modelName == 'SMN_TEST':
+    model = smn_smn.SMN(
+        voc_len=vocab_size,  # vocab size
     )
 
 elif args.modelName == 'Dual_GRU':

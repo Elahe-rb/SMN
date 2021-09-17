@@ -7,11 +7,11 @@ adam_beta2 = 0.999
 num_classes = 1
 
 DO_ClEAN = False
-IS_SMN = False
-min_freq = 8  #10 for udc
+IS_SMN = True
+min_freq = 8  #10 for udc  #***** Tip ****:: 8 is ok for MSDialog
 
 dataset="MSDialog"#"UDC"
-model_name = 'Dual_GRU' #'SMN'   #or Dual_GRU
+model_name = 'SMN_TEST'#'Dual_GRU' #'SMN'   #or Dual_GRU
 
 
 #udc params
@@ -30,7 +30,7 @@ model_name = 'Dual_GRU' #'SMN'   #or Dual_GRU
 
 #MsDialog
 
-batch_size = 50
+batch_size = 60#50
 evaluate_batch_size = 250
 embed_dim = 200  # embedding dim: this is the input_size in rnn function
 hidden_size = 100  # rnn dim hidden states
