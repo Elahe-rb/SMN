@@ -144,7 +144,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
 
     for dialog in data:
 
-        dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
+        dialog[1:] = [(utt+'EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
@@ -162,7 +162,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
             context_idx = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
             if len(context_idx) < max_utt_length:  #padding
                 context_idx = [0] * (max_utt_length - len(context_idx)) + context_idx   #first padding
-                selected_nested_context_idx.append(context_idx)
+            selected_nested_context_idx.append(context_idx)
         if len(selected_nested_context_idx) < max_utt_num:
             selected_nested_context_idx = ([PAD_SEQUENCE] * (max_utt_num - len(selected_nested_context_idx))) + selected_nested_context_idx
 
@@ -173,8 +173,6 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
         response_idx = list(map(lambda k: vocab.get(k, 1), selected_response[:]))
         if (len(response_idx) < max_len):  # padding
             response_idx = [0] * (max_len - len(response_idx)) + response_idx # first padding
-        if len(response_idx) != max_len:
-            print('errrrrorrr')
 
         cs.append(torch.tensor(selected_nested_context_idx))
         rs.append(torch.tensor(response_idx))
