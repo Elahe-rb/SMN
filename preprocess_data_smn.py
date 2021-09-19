@@ -328,12 +328,13 @@ def normalizeString(str):
     #?? add tokenization lemma and stem
     #lemmatizer = WordNetLemmatizer()
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(str))))
-    s = str.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
-    s = re.sub(r"\s+", r" ", s).strip()    #will replace multiple whitespaces to one space.
+    s = re.sub(r"\s+", r" ", s).strip()
     stemmer = SnowballStemmer("english")
     s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
+    s = s.lower().strip()
+
     return s
 
 def clean_data(rows):
