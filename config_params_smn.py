@@ -6,12 +6,12 @@ adam_beta1 = 0.9    #these are the defult betas value for adam
 adam_beta2 = 0.999
 num_classes = 1
 
-DO_ClEAN = False
+DO_ClEAN = True
 IS_SMN = True
 min_freq = 10 #8  #10 for udc  #***** Tip ****:: 8 is ok for MSDialog
 
-dataset='UDC'#"MSDialog"#"UDC"
-model_name = 'SMN_TEST'#'Dual_GRU' #'SMN'   #or Dual_GRU
+dataset="UDC"#"MSDialog"#"UDC"
+model_name = 'SMN'#'Dual_GRU' #'SMN'   #or Dual_GRU
 
 
 #udc params
