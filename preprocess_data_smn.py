@@ -144,7 +144,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
 
     for dialog in data:
 
-        dialog[1:] = [(utt+'EOT') for utt in dialog[1:]] #append eot end of all utts
+        dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
@@ -328,12 +328,12 @@ def normalizeString(str):
     #?? add tokenization lemma and stem
     #lemmatizer = WordNetLemmatizer()
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(str))))
-    stemmer = SnowballStemmer("english")
-    s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(str))))
-    s = s.lower().strip()
+    s = str.lower().strip()
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
-    s = re.sub(r"\s+", r" ", s).strip()
+    s = re.sub(r"\s+", r" ", s).strip()    #will replace multiple whitespaces to one space.
+    stemmer = SnowballStemmer("english")
+    s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
     return s
 
 def clean_data(rows):
