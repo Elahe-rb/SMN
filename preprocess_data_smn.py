@@ -8,7 +8,7 @@ from nltk.stem import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
-#nltk.download('punkt')
+nltk.download('punkt')
 
 ######################################################################
 
