@@ -328,7 +328,7 @@ def normalizeString(str):
     #?? add tokenization lemma and stem
     #lemmatizer = WordNetLemmatizer()
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(str))))
-    s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", s)
+    s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", str)
     s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
     s = re.sub(r"\s+", r" ", s).strip()
     stemmer = SnowballStemmer("english")
