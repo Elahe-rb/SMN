@@ -218,8 +218,8 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
         if len(response_idx) < max_len:
             response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
 
-        cs.append(torch.Tensor(context_idx))
-        rs.append(torch.Tensor(response_idx))
+        cs.append(torch.tensor(context_idx))
+        rs.append(torch.tensor(response_idx))
         ys.append(torch.FloatTensor([int(label)]))
 
     cs = torch.stack(cs, 0).to(device)  # dim: batchsize * ut length * numoffeatures
