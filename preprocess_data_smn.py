@@ -357,7 +357,7 @@ def readFile(args, name):
         rows = list(reader)[1:]    #the first line is just column names
     elif args.dataset == "MSDialog":
         reader = csv.reader(open(os.path.join(args.dataPath,name+".tsv")), delimiter="\t")
-        rows = list(reader)[0:100]
+        rows = list(reader)[0:]
     print(f'# {name}_samples::{len(rows)}')
 
     if args.doClean:
