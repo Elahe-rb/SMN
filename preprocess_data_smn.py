@@ -144,13 +144,14 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
 
     for dialog in data:
 
-        dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
+        #dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
 
         selected_turns = context[-min(max_utt_num, len(context)):]
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
+
         #??or
         # selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
         #selected_context = [w for ut in selected_words_in_turns for w in ut]
@@ -159,7 +160,8 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
         PAD_SEQUENCE = [0] * max_utt_length
         #PAD_SEQUENCE[-1] = vocab.get('eot', 1)  # add eot end of each utterance
         for turn_sequence in selected_words_in_turns:
-            context_idx = list(map(lambda k: vocab.get(k, 1), turn_sequence[:]))
+            context_idx = list(map(lambda k: vocab.get(k, 1), turn_sequence[:-1])) #-1 is for deleting the last word to substitute with EOT in next line of code
+            context_idx.append(vocab.get('EOT',1))   ##!! if you want to comment this one, also change turn_sequence[:-1] to turn_sequence[:-] in previous line
             if len(context_idx) < max_utt_length:  #padding
                 context_idx = [0] * (max_utt_length - len(context_idx)) + context_idx   #first padding
             selected_nested_context_idx.append(context_idx)
@@ -170,6 +172,7 @@ def numberize_smn(data, vocab, max_utt_num , max_utt_length, device):
         ## and also for response
         response_words = response.split()
         selected_response = response_words[:min(len(response_words), max_len)]
+        selected_response[-1] = 'EOT'
         response_idx = list(map(lambda k: vocab.get(k, 1), selected_response[:]))
         if (len(response_idx) < max_len):  # padding
             response_idx = [0] * (max_len - len(response_idx)) + response_idx # first padding
@@ -192,7 +195,7 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
     ys = []
 
     for dialog in data:
-        dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
+        #1***dialog[1:] = [(utt+' EOT') for utt in dialog[1:]] #append eot end of all utts
         label = dialog[0]
         context = dialog[1:-1]
         response = dialog[-1]
@@ -202,13 +205,15 @@ def numberize_rnn(data, vocab, max_utt_num, max_utt_length, device):
         selected_words_in_turns = [words.split()[:min(len(words), max_utt_length)] for words in selected_turns]
         # ??or
         # selected_words_in_turns = [nltk.word_tokenize(words)[:min(len(words), max_utt_length)] for words in selected_turns]
-        selected_context = [w for ut in selected_words_in_turns for w in ut]
+        # 1***
+        selected_context = [w for ut in selected_words_in_turns for w in (ut[:-1]+['EOT'])]
         context_idx = list(map(lambda k: vocab.get(k, 1), selected_context))
         if len(context_idx) < max_len:
             context_idx = [0] * (max_len - len(context_idx)) + context_idx    #first_padding
 
         response_words = response.split()
         selected_response = response_words[:min(len(response_words), max_len)]
+        selected_response[-1] = 'EOT'
         response_idx = list(map(lambda k: vocab.get(k, 1), selected_response))  # [-max_length:]   # 1 is index of unkown words
         if len(response_idx) < max_len:
             response_idx = [0] * (max_len - len(response_idx)) + response_idx  # first_padding
@@ -329,11 +334,11 @@ def normalizeString(str):
     #lemmatizer = WordNetLemmatizer()
     #s = ' '.join(list(map(lemmatizer.lemmatize, nltk.word_tokenize(str))))
     s = re.sub(r"([.!\?\\/+*:&$%#@~=,\-\)\(])", r" \1 ", str)
-    s = re.sub(r"[^a-zA-Z0-9'!\?]", r" ", s)
-    s = re.sub(r"\s+", r" ", s).strip()
+    s = re.sub(r"[^a-zA-Z0-9'!\?@:]", r" ", s)
+    #s = re.sub(r"\s+", r" ", s).strip()
+    s = s.lower().strip()
     stemmer = SnowballStemmer("english")
     s = ' '.join(list(map(stemmer.stem, nltk.word_tokenize(s))))
-    s = s.lower().strip()
 
     return s
 
@@ -352,7 +357,7 @@ def readFile(args, name):
         rows = list(reader)[1:]    #the first line is just column names
     elif args.dataset == "MSDialog":
         reader = csv.reader(open(os.path.join(args.dataPath,name+".tsv")), delimiter="\t")
-        rows = list(reader)[0:]
+        rows = list(reader)[0:100]
     print(f'# {name}_samples::{len(rows)}')
 
     if args.doClean:

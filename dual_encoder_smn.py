@@ -37,15 +37,14 @@ class Encoder(nn.Module):
         self.p_dropout = dropout
         self.emb_dir = emb_dir
 
-        self.RNN = nn.GRU(self.emb_h_size, self.rnn_h_size, batch_first=True, bidirectional=False, bias=True)
         self.final = nn.Bilinear(self.rnn_h_size, self.rnn_h_size, 1, bias=False)
 
         self.embedding = nn.Embedding(vocab_size, input_size, sparse=False, padding_idx=0)
 
         if rnn_type == 'gru':
-            self.rnn = nn.GRU(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, dropout=0, bidirectional=bidirectional, batch_first=True).to(device)
+            self.rnn = nn.GRU(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, bidirectional=bidirectional, batch_first=True).to(device)
         else:
-            self.rnn = nn.LSTM(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, dropout=0, bidirectional=bidirectional, batch_first=True).to(device)
+            self.rnn = nn.LSTM(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, bidirectional=bidirectional, batch_first=True).to(device)
 
         M = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
         init.normal_(M)
@@ -142,14 +141,10 @@ class Encoder(nn.Module):
         # o = self.final(c, r).squeeze()
         # return o.view(-1,1)
 
-        context_os, context_hs = self.rnn(
-            contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
-        response_os, response_hs = self.rnn(
-            responses_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
-        context_hs = context_hs[
-            -1]  # dim: b*h   ::get the hidden of last layer(for single layer this is same as context_hs.squeeze(0))
-        response_hs = response_hs[
-            -1]  # dim: batch_size * hidden_size <=== (numlayers*num direction) * batch_size * hidden_size
+        context_os, context_hs = self.rnn(contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
+        response_os, response_hs = self.rnn(responses_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
+        context_hs = context_hs[-1]  # dim: b*h   ::get the hidden of last layer(for single layer this is same as context_hs.squeeze(0))
+        response_hs = response_hs[-1]  # dim: batch_size * hidden_size <=== (numlayers*num direction) * batch_size * hidden_size
 
         ##multiply by idf
         #c_df = c_df.float()

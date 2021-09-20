@@ -27,9 +27,6 @@ def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, 
     for batch in range(num_batches):
         cs, rs, ys = preprocess_data_smn.process_data(train_rows, batch, batch_size, vocab, args, device)
 
-        # ToDo:: check this!
-        optimizer.zero_grad()
-
         output = model(cs,rs)
         loss = loss_fn(output,ys)
 
@@ -45,6 +42,8 @@ def train(model, loss_fn, optimizer, train_rows, batch_size, epoch, num_epochs, 
             num_correct = (pred == ys.byte()).sum().item()
             total_acc += num_correct
 
+        # ToDo:: check this!
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 

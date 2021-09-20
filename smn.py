@@ -40,22 +40,21 @@ class SMN(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, self.emb_h_size, padding_idx=0)
 
-        self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True,dropout=0).to(device)
 
-        M_1 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
-        init.normal_(M_1)
-        self.M = nn.Parameter(M_1, requires_grad=True)
-
-        M_2 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
-        init.normal_(M_2)
-        self.W = nn.Parameter(M_2, requires_grad=True)
-
+        # M_1 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+        # init.normal_(M_1)
+        # self.M = nn.Parameter(M_1, requires_grad=True)
+        #
+        # M_2 = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
+        # init.normal_(M_2)
+        # self.W = nn.Parameter(M_2, requires_grad=True)
+        #
 
         self.dropout_layer = nn.Dropout(self.p_dropout)
 
 
         ###########################################################################################################
-        self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True, dropout=0).to(device)
+        self.sentence_GRU = nn.GRU(self.emb_h_size, self.rnn_h_size, bidirectional=bidirectional, batch_first=True).to(device)
         ih_u = (param.data for name, param in self.sentence_GRU.named_parameters() if 'weight_ih' in name)
         hh_u = (param.data for name, param in self.sentence_GRU.named_parameters() if 'weight_hh' in name)
         for k in ih_u:

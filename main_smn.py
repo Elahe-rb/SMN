@@ -13,6 +13,7 @@ import evaluate_smn
 import smn
 import smn_smn
 import dual_encoder_smn
+import smn_paper
 
 #########################  Device configuration ###################################
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -70,7 +71,18 @@ if args.modelName == 'SMN':
         dropout=dropout_rate,
         emb_dir=args.embDir
     )
-
+if args.modelName == 'SMN_PAPER':
+    model = smn_paper.SMN(
+        vocab=vocab,
+        input_size=embed_dim,  # embedding dim
+        hidden_size=hidden_size,  # rnn dim
+        vocab_size=vocab_size,  # vocab size
+        bidirectional=False,  # really should change!
+        rnn_type='gru',
+        num_layers=1,
+        dropout=dropout_rate,
+        emb_dir=args.embDir
+    )
 if args.modelName == 'SMN_TEST':
     model = smn_smn.SMN(
         voc_len=vocab_size,  # vocab size
