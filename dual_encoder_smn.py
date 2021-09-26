@@ -19,7 +19,8 @@ class Encoder(nn.Module):
             vocab,
             input_size,
             hidden_size,
-            vocab_size,
+
+         vocab_size,
             bidirectional,
             rnn_type,
             num_layers,
@@ -41,9 +42,9 @@ class Encoder(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, input_size, sparse=False, padding_idx=0)
 
-        if rnn_type == 'gru':
+        if self.rnn_type == 'gru':
             self.rnn = nn.GRU(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, bidirectional=bidirectional, batch_first=True).to(device)
-        else:
+        elif self.rnn_type == 'lstm':
             self.rnn = nn.LSTM(self.emb_h_size, self.rnn_h_size, num_layers=num_layers, bidirectional=bidirectional, batch_first=True).to(device)
 
         M = torch.FloatTensor(self.rnn_h_size, self.rnn_h_size).to(device)
@@ -141,8 +142,15 @@ class Encoder(nn.Module):
         # o = self.final(c, r).squeeze()
         # return o.view(-1,1)
 
-        context_os, context_hs = self.rnn(contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
-        response_os, response_hs = self.rnn(responses_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
+        context_os, context_hs = self.rnn(
+            contexts_emb)  # context_hs dimensions: ( (numlayers*num direction) * batch_size * hidden_size)
+        response_os, response_hs = self.rnn(
+            responses_emb)  # context_os dimensions: (batch_size * seq_length * hidden_size)
+
+        if self.rnn_type == 'lstm':    #Outputs: output, (h_n, c_n)  context_hs[0] is h_n
+            context_hs = context_hs[0]
+            response_hs = response_hs[0]
+
         context_hs = context_hs[-1]  # dim: b*h   ::get the hidden of last layer(for single layer this is same as context_hs.squeeze(0))
         response_hs = response_hs[-1]  # dim: batch_size * hidden_size <=== (numlayers*num direction) * batch_size * hidden_size
 

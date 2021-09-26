@@ -28,6 +28,7 @@ class SMN(nn.Module):
     ):
         super(SMN, self).__init__()
         self.emd_dir = emb_dir
+        self.vocab = vocab
 
         print(f'this is SMN all share Model')
         # 参数设定
@@ -41,11 +42,11 @@ class SMN(nn.Module):
 
         glove_embeddings = preprocess_data_smn.load_glove_embeddings(self.vocab, self.emd_dir)
 
-        embedding_weights = torch.FloatTensor(self.total_words, self.emb_h_size)
+        embedding_weights = torch.FloatTensor(self.total_words, self.word_embedding_size)
         init.uniform_(embedding_weights, a=-0.25, b=0.25)
         for k, v in glove_embeddings.items():
             embedding_weights[k] = torch.FloatTensor(v)
-        embedding_weights[0] = torch.FloatTensor([0] * self.emb_h_size)
+        embedding_weights[0] = torch.FloatTensor([0] * self.word_embedding_size)
 
         self.word_embedding.weight = nn.Parameter(embedding_weights, requires_grad=True)
 
@@ -82,7 +83,7 @@ class SMN(nn.Module):
 
         self.Amatrix = torch.ones((self.rnn_units, self.rnn_units), requires_grad=True)
         init.xavier_uniform_(self.Amatrix)
-        self.Amatrix = self.Amatrix.cuda()
+        self.Amatrix = self.Amatrix.to(device)
         # 最后一层的gru
         self.final_GRU = nn.GRU(50, self.rnn_units, bidirectional=False, batch_first=True)
         ih_f = (param.data for name, param in self.final_GRU.named_parameters() if 'weight_ih' in name)
@@ -92,7 +93,7 @@ class SMN(nn.Module):
         for k in hh_f:
             nn.init.orthogonal_(k)
         # final_GRU后的linear层
-        self.final_linear = nn.Linear(200, 2)
+        self.final_linear = nn.Linear(100, 1)
         final_linear_weight = (param.data for name, param in self.final_linear.named_parameters() if "weight" in name)
         for w in final_linear_weight:
             init.xavier_uniform_(w)
@@ -121,7 +122,7 @@ class SMN(nn.Module):
             matrix1 = torch.matmul(utterance_embeddings, response_embeddings)
 
             utterance_GRU_embeddings, _ = self.utterance_GRU(utterance_embeddings)
-            matrix2 = torch.einsum('aij,jk->aik', utterance_GRU_embeddings, self.Amatrix)
+            matrix2 = torch.einsum('aij,jk->aik', [utterance_GRU_embeddings, self.Amatrix])
             matrix2 = torch.matmul(matrix2, response_GRU_embeddings)
 
             matrix = torch.stack([matrix1, matrix2], dim=1)
@@ -134,7 +135,7 @@ class SMN(nn.Module):
             pooling_layer = pooling_layer.view(pooling_layer.size(0), -1)
             matching_vector = self.linear(pooling_layer)
             # add activate function
-            matching_vector = F.tanh(matching_vector)
+            matching_vector = torch.tanh(matching_vector)
             matching_vectors.append(matching_vector)
 
         _, last_hidden = self.final_GRU(torch.stack(matching_vectors, dim=1))
