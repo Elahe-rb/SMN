@@ -10,12 +10,12 @@ DO_ClEAN = False
 IS_SMN = True
 min_freq = 10 #8  #10 for udc  #***** Tip ****:: 8 is ok for MSDialog
 
-dataset="MSDialog"#"UDC"
+dataset="UDC"#"UDC"
 model_name = 'SMN_PAPER'#'Dual_GRU' #'SMN'   #or Dual_GRU
 
 
 #udc params
-'''
+
 batch_size = 100#128#40#512#128#512
 evaluate_batch_size = 500#100#500
 embed_dim = 200  # embedding dim: this is the input_size in rnn function
@@ -42,3 +42,4 @@ max_utterance_length = 50#90   #90 as in paper said    but also check 50
 max_conv_utt_num = 10
 
 
+'''
